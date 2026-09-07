@@ -3,7 +3,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
-export const isSupabaseConfigured = Boolean(url && anonKey)
+const isPlaceholder = (v: string | undefined) =>
+  !v || v.includes('your-project-ref') || v.includes('your-anon-public-key')
+
+export const isSupabaseConfigured = !isPlaceholder(url) && !isPlaceholder(anonKey)
 
 if (!isSupabaseConfigured && import.meta.env.DEV) {
   // eslint-disable-next-line no-console
