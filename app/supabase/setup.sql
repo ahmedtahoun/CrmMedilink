@@ -1,7 +1,7 @@
 -- MediLink360 full setup — paste this whole file into the Supabase SQL editor and Run.
--- Equivalent to running migrations 0001, 0002, 0003 in order.
+-- Equivalent to running migrations 0001..0004 in order.
 
------------------------------- 0001_init.sql ------------------------------
+------------------------------ migrations/0001_init.sql ------------------------------
 -- MediLink360 — core schema
 -- Run in the Supabase SQL editor (or via `supabase db push`) in order: 0001 -> 0002 -> 0003.
 
@@ -315,7 +315,7 @@ drop trigger if exists employees_touch on public.employees;
 create trigger employees_touch before update on public.employees
   for each row execute function public.touch_updated_at();
 
------------------------------- 0002_rls.sql -------------------------------
+------------------------------ migrations/0002_rls.sql ------------------------------
 -- MediLink360 — row level security
 -- Depends on 0001_init.sql.
 
@@ -463,7 +463,7 @@ drop policy if exists documents_delete on storage.objects;
 create policy documents_delete on storage.objects
   for delete using (bucket_id = 'documents' and public.is_ceo_or_admin());
 
------------------------------- 0003_seed.sql ------------------------------
+------------------------------ migrations/0003_seed.sql ------------------------------
 -- MediLink360 — demo seed data (ported from MediLink360 Pitch.dc.html state).
 -- Safe to skip in production; gives the board content on first login.
 -- Auth users are NOT seeded here — create them in Supabase Auth (see README),
@@ -544,3 +544,21 @@ select c.id, v.q, v.a, v.sort from c join (values
   ('Sales','What makes Medilink360 different?','Instead of replacing clinic operations, we connect people, data, and workflows into one platform.',2),
   ('Implementation','What happens after a clinic signs?','Welcome Meeting, Requirements Collection, Clinic Profile Setup, Staff Training, Go Live, Follow-up Support.',0)
 ) as v(cat, q, a, sort) on v.cat = c.name;
+
+------------------------------ migrations/0004_realtime.sql ------------------------------
+-- MediLink360 — enable Postgres realtime for the tables the app subscribes to.
+-- Safe to re-run; each add is guarded.
+
+do $$
+declare t text;
+begin
+  foreach t in array array['clinics','calendar_events','clinic_comments'] loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;
+
