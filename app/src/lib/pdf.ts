@@ -1,6 +1,10 @@
 import { COMPANY, MARKET_BY_KEY, type MarketKey } from './constants'
 import type { Clinic, Invoice, LineItem, Quotation } from './types'
 import { docTotals, fmtMoney } from './format'
+import { LOGO_PNG_DATA_URI } from './logo'
+
+const LOGO_W = 150
+const LOGO_H = (LOGO_W * 132) / 580 // native logo is 580 x 132
 
 type Kind = 'invoice' | 'quotation'
 
@@ -34,19 +38,25 @@ export async function generateFinancePdf(
   const items: LineItem[] = doc.line_items ?? []
   const t = docTotals(items, doc.discount_pct, doc.tax_pct)
 
-  // ---- header: company block (left) + doc title (right) ----
-  pdf.setFont('helvetica', 'bold').setFontSize(20).setTextColor(INK)
-  pdf.text(COMPANY.name, M, y + 4)
-  pdf.setFont('helvetica', 'normal').setFontSize(9).setTextColor(MUTED)
-  pdf.text(COMPANY.tagline, M, y + 20)
-  COMPANY.addressLines.forEach((line, i) => pdf.text(line, M, y + 34 + i * 12))
+  // ---- header: logo + entity block (left) + doc title (right) ----
+  try {
+    pdf.addImage(LOGO_PNG_DATA_URI, 'PNG', M, y, LOGO_W, LOGO_H)
+  } catch {
+    pdf.setFont('helvetica', 'bold').setFontSize(20).setTextColor(INK).text(COMPANY.name, M, y + 16)
+  }
+  const entityY = y + LOGO_H + 14
+  pdf.setFont('helvetica', 'bold').setFontSize(10).setTextColor(INK)
+  pdf.text(COMPANY.legalEntity, M, entityY)
+  pdf.setFont('helvetica', 'normal').setFontSize(8.5).setTextColor(MUTED)
+  pdf.text(COMPANY.tagline, M, entityY + 12)
+  COMPANY.addressLines.forEach((line, i) => pdf.text(line, M, entityY + 24 + i * 11))
 
   pdf.setFont('helvetica', 'bold').setFontSize(24).setTextColor(BRAND)
-  pdf.text(title, pageW - M, y + 6, { align: 'right' })
+  pdf.text(title, pageW - M, y + 22, { align: 'right' })
   pdf.setFont('helvetica', 'normal').setFontSize(10).setTextColor(INK)
-  pdf.text(`# ${meta.docNumber}`, pageW - M, y + 24, { align: 'right' })
+  pdf.text(`# ${meta.docNumber}`, pageW - M, y + 40, { align: 'right' })
 
-  y += 34 + COMPANY.addressLines.length * 12 + 24
+  y = entityY + 24 + COMPANY.addressLines.length * 11 + 20
 
   // ---- bill-to + meta table ----
   pdf.setDrawColor(221, 227, 230).setLineWidth(1)
@@ -149,10 +159,12 @@ export async function generateFinancePdf(
   pdf.text(pdf.splitTextToSize(terms, pageW - M * 2), M, y + 13)
 
   // ---- footer ----
-  const footY = pdf.internal.pageSize.getHeight() - 30
-  pdf.setFontSize(8).setTextColor(MUTED)
-  pdf.text(`${COMPANY.name} · ${title} ${meta.docNumber}`, M, footY)
-  pdf.text('Generated from the MediLink360 CRM', pageW - M, footY, { align: 'right' })
+  const footY = pdf.internal.pageSize.getHeight() - 34
+  pdf.setDrawColor(221, 227, 230).setLineWidth(0.5)
+  pdf.line(M, footY - 12, pageW - M, footY - 12)
+  pdf.setFontSize(7.5).setTextColor(MUTED)
+  pdf.text(COMPANY.footer, pageW / 2, footY, { align: 'center' })
+  pdf.text(`${title} ${meta.docNumber}`, pageW / 2, footY + 11, { align: 'center' })
 
   pdf.save(`${kind === 'invoice' ? 'Invoice' : 'Quotation'}-${meta.docNumber}.pdf`)
 }

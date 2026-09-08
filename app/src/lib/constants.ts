@@ -159,13 +159,21 @@ export const ACCESS_MODULE_LABELS: Record<AccessModuleKey, string> = {
 
 export const marketCountry = (m: MarketKey) => MARKET_BY_KEY[m].country
 
-// Appears on generated invoice / quotation PDFs. Edit to match the real entity.
+// Appears on generated invoice / quotation PDFs. From the KEB letterhead.
 export const COMPANY = {
-  name: 'MediLink360',
-  tagline: 'Clinic Rollout & Training',
-  addressLines: ['Cairo, Egypt', 'hello@medilink360.ai', 'crm.medilink360.ai'],
-  paymentTerms: 'Payment due within 15 days of invoice date.',
+  name: 'MediLink360', // product name — used in the doc title + file name
+  legalEntity: 'KEB International Group',
+  tagline: 'Key Ecosystem Builder',
+  addressLines: [
+    'St. 233, Building 11, Flat 14',
+    'Degla, Maadi, Cairo, Egypt',
+    'crm.medilink360.ai',
+  ],
+  footer: 'Copyright © 2026 KEB International Group  |  All Rights Reserved.  ·  Confidential',
+  paymentTerms:
+    'Payment due within 15 days of the invoice date by bank transfer to KEB International Group. ' +
+    'Please quote the invoice number as the transfer reference.',
   quotationTerms:
-    'This quotation is valid until the date shown above. Prices are exclusive of any bank transfer fees. ' +
-    'A 1-month free trial precedes every subscription plan.',
+    'This quotation is valid until the date shown above and is issued by KEB International Group. ' +
+    'Prices are exclusive of bank transfer fees. A 1-month free trial precedes every subscription plan.',
 }
