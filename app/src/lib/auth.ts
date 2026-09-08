@@ -12,7 +12,7 @@ export interface AuthState {
 
 /** Subscribe to the Supabase auth session + the signed-in user's profile row. */
 export function useAuth(): AuthState {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(isSupabaseConfigured)
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
 
@@ -32,10 +32,7 @@ export function useAuth(): AuthState {
       if (!cancelled) setProfile((data as Profile) ?? null)
     }
 
-    if (!isSupabaseConfigured) {
-      setLoading(false)
-      return
-    }
+    if (!isSupabaseConfigured) return
 
     supabase.auth.getSession().then(async ({ data }) => {
       if (cancelled) return

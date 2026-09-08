@@ -11,7 +11,6 @@ export function useCalendarEvents(market: MarketKey) {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     supabase
       .from('calendar_events')
       .select('*')

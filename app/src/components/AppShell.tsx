@@ -38,17 +38,54 @@ export default function AppShell({ profile }: AppShellProps) {
   const active: Workspace = visible.has(workspace) ? workspace : (([...visible][0] as Workspace) || 'faq')
   if (active !== workspace) setWorkspace(active)
 
+  const [navOpen, setNavOpen] = useState(false)
+
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--canvas)' }}>
-      <Sidebar
-        profile={profile}
-        visibleWorkspaces={visible}
-        onManageUsers={() => setManageUsers(true)}
-        onAddClinic={() => setAddClinic(true)}
-        onSignOut={signOut}
+      <div
+        className="ml-shell-scrim"
+        data-open={navOpen ? 'true' : 'false'}
+        onClick={() => setNavOpen(false)}
       />
+      <div
+        className="ml-shell-sidebar"
+        data-open={navOpen ? 'true' : 'false'}
+        style={{ display: 'flex' }}
+        onClick={() => setNavOpen(false)}
+      >
+        <Sidebar
+          profile={profile}
+          visibleWorkspaces={visible}
+          onManageUsers={() => setManageUsers(true)}
+          onAddClinic={() => setAddClinic(true)}
+          onSignOut={signOut}
+        />
+      </div>
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        <button
+          className="ml-shell-menu-btn"
+          onClick={() => setNavOpen(true)}
+          aria-label="Open menu"
+          style={{
+            position: 'absolute',
+            top: 14,
+            left: 14,
+            zIndex: 90,
+            width: 38,
+            height: 38,
+            borderRadius: 10,
+            border: '1px solid var(--border)',
+            background: '#fff',
+            cursor: 'pointer',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 18,
+            color: 'var(--ink)',
+          }}
+        >
+          ☰
+        </button>
         {active === 'ceo' && <CeoOverview profile={profile} />}
         {active === 'providers' && <Providers profile={profile} onAddClinic={() => setAddClinic(true)} />}
         {active === 'closer' && (

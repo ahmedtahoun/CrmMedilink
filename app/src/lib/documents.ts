@@ -10,7 +10,6 @@ export function useCountryDocuments() {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     supabase
       .from('country_documents')
       .select('*')

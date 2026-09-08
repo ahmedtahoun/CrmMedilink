@@ -27,7 +27,8 @@ export default function Faq({ profile }: Props) {
   const toggle = (id: string) =>
     setOpen((s) => {
       const n = new Set(s)
-      n.has(id) ? n.delete(id) : n.add(id)
+      if (n.has(id)) n.delete(id)
+      else n.add(id)
       return n
     })
 

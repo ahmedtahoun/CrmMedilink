@@ -177,13 +177,14 @@ export function useClinicDetail(clinicId: string | null) {
   useEffect(() => {
     if (!clinicId) return
     let cancelled = false
-    setLoading(true)
+    const t0 = setTimeout(() => !cancelled && setLoading(true), 0)
     Promise.all([
       supabase.from('clinic_comments').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: false }),
       supabase.from('training_sessions').select('*').eq('clinic_id', clinicId).order('date', { ascending: true }),
       supabase.from('clinic_tasks').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: true }),
     ]).then(([c, s, t]) => {
       if (cancelled) return
+      clearTimeout(t0)
       setComments((c.data as ClinicComment[]) ?? [])
       setSessions((s.data as TrainingSession[]) ?? [])
       setTasks((t.data as ClinicTask[]) ?? [])
@@ -191,6 +192,7 @@ export function useClinicDetail(clinicId: string | null) {
     })
     return () => {
       cancelled = true
+      clearTimeout(t0)
     }
   }, [clinicId, tick])
 

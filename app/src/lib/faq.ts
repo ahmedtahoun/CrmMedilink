@@ -11,7 +11,6 @@ export function useFaq() {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     Promise.all([
       supabase.from('faq_categories').select('*').order('sort', { ascending: true }),
       supabase.from('faq_items').select('*').order('sort', { ascending: true }),

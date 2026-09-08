@@ -17,7 +17,6 @@ export function useInvoices(market: MarketKey) {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     supabase
       .from('invoices')
       .select('*, line_items:invoice_line_items(*)')
@@ -54,7 +53,6 @@ export function useQuotations(market: MarketKey) {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     supabase
       .from('quotations')
       .select('*, line_items:quotation_line_items(*)')
@@ -81,7 +79,6 @@ export function useExpenses(market: MarketKey) {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     supabase
       .from('expenses')
       .select('*')

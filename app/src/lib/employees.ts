@@ -11,7 +11,6 @@ export function useEmployees() {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     supabase
       .from('employees')
       .select('*')

@@ -286,6 +286,12 @@ function ClinicCard({
   const flags = riskFlags(clinic)
   const tdl = trialDaysLeft(clinic)
   const isLive = clinic.cs === 'signed' && clinic.ts === 'live'
+  const isTrainer = board === 'trainer'
+  const trainerStageKeys = ['handoff', 'scheduled', 'reception', 'followup', 'live']
+  const progressPct = isTrainer
+    ? Math.round(((trainerStageKeys.indexOf(clinic.ts ?? 'handoff') + 1) / trainerStageKeys.length) * 100)
+    : 0
+  const contractLabel = clinic.cs === 'commission' ? 'Commission Based' : 'Contract Subscription'
 
   return (
     <div
@@ -375,6 +381,23 @@ function ClinicCard({
         </span>
       </div>
 
+      {isTrainer && (
+        <div style={{ marginBottom: 9 }}>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 800,
+              padding: '3px 9px',
+              borderRadius: 20,
+              background: clinic.cs === 'commission' ? '#fbf1e0' : '#e7f0fe',
+              color: clinic.cs === 'commission' ? '#b45309' : '#2563eb',
+            }}
+          >
+            {contractLabel}
+          </span>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <Pill swatch={cat}>{clinic.cat}</Pill>
         <Pill swatch={pri}>{clinic.pri}</Pill>
@@ -390,6 +413,32 @@ function ClinicCard({
           </Pill>
         ))}
       </div>
+
+      {isTrainer && (
+        <>
+          <div
+            style={{
+              marginTop: 11,
+              paddingTop: 11,
+              borderTop: '1px solid #f1f4f6',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '6px 10px',
+              fontSize: 11,
+              color: '#7a8891',
+              fontWeight: 600,
+            }}
+          >
+            <div>Trainer: <span style={{ color: '#33424c' }}>{clinic.trainer || '—'}</span></div>
+            <div>Sales rep: <span style={{ color: '#33424c' }}>{clinic.closer || '—'}</span></div>
+            <div>Trial ends: <span style={{ color: '#33424c' }}>{shortDay(clinic.trial_to)}</span></div>
+            <div>Sub ends: <span style={{ color: '#33424c' }}>{shortDay(clinic.sub_to)}</span></div>
+          </div>
+          <div style={{ marginTop: 9, height: 6, background: '#eef1f3', borderRadius: 99, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg,#17c08f,#0e9270)', borderRadius: 99 }} />
+          </div>
+        </>
+      )}
     </div>
   )
 }

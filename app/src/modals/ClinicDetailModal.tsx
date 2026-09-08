@@ -16,6 +16,12 @@ import {
 import { catStyle, priStyle, stageColorFor } from '../lib/styles'
 import { shortDay } from '../lib/format'
 import { riskFlags, stageTitle, type BoardType } from '../lib/pipeline'
+import {
+  useClinicAttachments,
+  uploadClinicAttachment,
+  signedAttachmentUrl,
+  deleteClinicAttachment,
+} from '../lib/attachments'
 import Avatar from '../components/Avatar'
 import Pill from '../components/Pill'
 
@@ -513,13 +519,83 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
             </div>
           )}
 
-          {tab === 'files' && (
-            <div className="ml-empty" style={{ padding: '24px 0' }}>
-              File attachments land alongside the Documents workspace in Phase 3.
-            </div>
-          )}
+          {tab === 'files' && <FilesTab clinicId={clinicId} />}
         </div>
       </div>
+    </div>
+  )
+}
+
+function FilesTab({ clinicId }: { clinicId: string }) {
+  const showToast = useAppStore((s) => s.showToast)
+  const { files, loading, reload } = useClinicAttachments(clinicId)
+
+  async function pick(file: File | undefined) {
+    if (!file) return
+    const err = await uploadClinicAttachment(clinicId, file)
+    if (err) showToast(err)
+    else {
+      showToast('File uploaded')
+      reload()
+    }
+  }
+
+  return (
+    <div>
+      <label
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 12,
+          fontWeight: 700,
+          color: 'var(--brand)',
+          background: 'var(--brand-tint)',
+          border: '1px solid var(--brand-tint-border)',
+          padding: '8px 13px',
+          borderRadius: 9,
+          cursor: 'pointer',
+          marginBottom: 14,
+        }}
+      >
+        Upload file
+        <input type="file" onChange={(e) => pick(e.target.files?.[0])} style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} />
+      </label>
+
+      {loading && <div className="ml-empty" style={{ padding: '12px 0' }}>Loading…</div>}
+      {!loading && files.length === 0 && <div className="ml-empty" style={{ padding: '12px 0' }}>No files yet.</div>}
+      {files.map((f) => (
+        <div key={f.path} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '9px 0', borderTop: '1px solid var(--border-soft)' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {f.name.replace(/^\d+-/, '')}
+          </span>
+          <span style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button
+              onClick={async () => {
+                const url = await signedAttachmentUrl(f.path)
+                if (url) window.open(url, '_blank', 'noopener')
+                else showToast('Could not open file')
+              }}
+              style={{ padding: '5px 9px', borderRadius: 7, fontSize: 10.5, fontWeight: 700, background: '#f1f4f6', color: 'var(--text)', border: 'none', cursor: 'pointer' }}
+            >
+              Open
+            </button>
+            <button
+              onClick={async () => {
+                const err = await deleteClinicAttachment(f.path)
+                if (err) showToast(err)
+                else {
+                  showToast('Deleted')
+                  reload()
+                }
+              }}
+              style={{ padding: '5px 9px', borderRadius: 7, fontSize: 10.5, fontWeight: 700, background: '#fdf1f1', color: '#dc2626', border: '1px solid #f6d8d8', cursor: 'pointer' }}
+            >
+              Delete
+            </button>
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
