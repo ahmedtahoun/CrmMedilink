@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Expense, Invoice, LineItem, Quotation } from '../lib/types'
 import {
   EXPENSE_CATEGORY_OPTIONS,
@@ -8,9 +8,11 @@ import {
 } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { useClinics } from '../lib/clinics'
-import { saveExpense, saveInvoice, saveQuotation } from '../lib/finance'
+import { nextQuotationRef, saveExpense, saveInvoice, saveQuotation } from '../lib/finance'
 import { generateFinancePdf } from '../lib/pdf'
-import { docTotals, fmtMoney, num, todayStr } from '../lib/format'
+import { addDays, docTotals, fmtMoney, num, todayStr } from '../lib/format'
+
+const QUOTE_VALID_DAYS = 30
 import Modal from '../components/Modal'
 import Icon from '../components/Icon'
 
@@ -38,7 +40,10 @@ export default function FinanceModal({ kind, editing, onClose, onSaved }: Props)
   const [reference, setReference] = useState(doc?.reference ?? '')
   const [issueDate, setIssueDate] = useState(doc?.issue_date ?? todayStr())
   const [dueDate, setDueDate] = useState((doc as Invoice | null)?.due_date ?? '')
-  const [validUntil, setValidUntil] = useState((doc as Quotation | null)?.valid_until ?? '')
+  const [validUntil, setValidUntil] = useState(
+    (doc as Quotation | null)?.valid_until ??
+      (kind === 'quotation' && !editing ? addDays(doc?.issue_date ?? todayStr(), QUOTE_VALID_DAYS) : ''),
+  )
   const [status, setStatus] = useState(
     doc?.status ?? (kind === 'invoice' ? 'Draft' : kind === 'quotation' ? 'Draft' : ''),
   )
@@ -57,7 +62,26 @@ export default function FinanceModal({ kind, editing, onClose, onSaved }: Props)
   const [amount, setAmount] = useState(String(exp?.amount ?? ''))
 
   const hasLineItems = kind !== 'expense'
+  const isNewQuote = kind === 'quotation' && !editing
   const totals = useMemo(() => docTotals(items, discountPct, taxPct), [items, discountPct, taxPct])
+
+  // New quotation: auto serial reference (YYYY/MM/DD/NNN) keyed to the issue date.
+  useEffect(() => {
+    if (!isNewQuote) return
+    let cancelled = false
+    nextQuotationRef(issueDate).then((ref) => {
+      if (!cancelled) setReference(ref)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [isNewQuote, issueDate])
+
+  // Keep the 30-day validity in step with the issue date for a new quotation.
+  function onIssueDate(v: string) {
+    setIssueDate(v)
+    if (isNewQuote) setValidUntil(addDays(v, QUOTE_VALID_DAYS))
+  }
 
   const title = `${editing ? 'Edit' : 'New'} ${kind === 'invoice' ? 'invoice' : kind === 'quotation' ? 'quotation' : 'expense'}`
 
@@ -154,17 +178,27 @@ export default function FinanceModal({ kind, editing, onClose, onSaved }: Props)
               </select>
             </div>
             <div>
-              <label className="ml-label">PO / reference</label>
-              <input className="ml-input" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="optional" />
+              <label className="ml-label">{kind === 'quotation' ? 'Quotation No.' : 'PO / reference'}</label>
+              <input
+                className="ml-input"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                readOnly={isNewQuote}
+                placeholder={kind === 'quotation' ? 'auto' : 'optional'}
+                style={isNewQuote ? { background: 'var(--surface-alt-2)', color: 'var(--muted-2)' } : undefined}
+                title={isNewQuote ? 'Auto-generated serial: YYYY/MM/DD/NNN' : undefined}
+              />
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
             <div>
               <label className="ml-label">{kind === 'invoice' ? 'Issue date' : 'Date'}</label>
-              <input className="ml-input" type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+              <input className="ml-input" type="date" value={issueDate} onChange={(e) => onIssueDate(e.target.value)} />
             </div>
             <div>
-              <label className="ml-label">{kind === 'invoice' ? 'Due date' : 'Valid until'}</label>
+              <label className="ml-label">
+                {kind === 'invoice' ? 'Due date' : `Valid until${isNewQuote ? ` (+${QUOTE_VALID_DAYS}d)` : ''}`}
+              </label>
               <input
                 className="ml-input"
                 type="date"
@@ -293,7 +327,7 @@ export default function FinanceModal({ kind, editing, onClose, onSaved }: Props)
                 },
                 clinics.find((c) => c.id === clinicId),
                 market,
-                { docNumber: (editing as { id: string }).id.slice(0, 8).toUpperCase() },
+                { docNumber: reference || (editing as { id: string }).id.slice(0, 8).toUpperCase() },
               ).catch((e) => console.error(e))
             }}
             style={{ flexShrink: 0, padding: 11 }}

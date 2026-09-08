@@ -342,7 +342,10 @@ function DocTab({
                 </td>
                 <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <span
-                    onClick={() => { void generateFinancePdf(kind, r, clinicById(r.clinic_id), market, { docNumber: docNo(i) }).catch((e) => console.error(e)) }}
+                    onClick={() => {
+                      const docNumber = kind === 'quotation' && r.reference ? r.reference : docNo(i)
+                      void generateFinancePdf(kind, r, clinicById(r.clinic_id), market, { docNumber }).catch((e) => console.error(e))
+                    }}
                     style={{ cursor: 'pointer', color: 'var(--ink-2)', fontWeight: 700, fontSize: 12, marginRight: 12 }}
                   >
                     PDF

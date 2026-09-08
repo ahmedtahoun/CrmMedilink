@@ -22,6 +22,13 @@ export const toUsd = (
 
 export const todayStr = (): string => new Date().toISOString().slice(0, 10)
 
+/** ISO date (YYYY-MM-DD) N days after the given ISO date, in local time. */
+export const addDays = (iso: string, days: number): string => {
+  const d = new Date((iso || todayStr()) + 'T00:00:00')
+  d.setDate(d.getDate() + days)
+  return localDateStr(d)
+}
+
 export const localDateStr = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 

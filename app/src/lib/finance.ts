@@ -177,6 +177,26 @@ export async function saveExpense(input: {
   return error ? error.message : null
 }
 
+/**
+ * Next quotation reference — a per-day serial: `YYYY/MM/DD/NNN`.
+ * NNN restarts at 001 each calendar day, counting existing quotations whose
+ * reference already uses today's prefix.
+ */
+export async function nextQuotationRef(issueDate?: string | null): Promise<string> {
+  const base = issueDate || todayStr() // YYYY-MM-DD
+  const prefix = base.replaceAll('-', '/') // YYYY/MM/DD
+  const { data } = await supabase
+    .from('quotations')
+    .select('reference')
+    .like('reference', `${prefix}/%`)
+  let max = 0
+  for (const row of (data as { reference: string | null }[]) ?? []) {
+    const n = Number(row.reference?.split('/').pop())
+    if (Number.isFinite(n) && n > max) max = n
+  }
+  return `${prefix}/${String(max + 1).padStart(3, '0')}`
+}
+
 export async function deleteFinance(kind: Kind, id: string): Promise<string | null> {
   const table = kind === 'invoice' ? 'invoices' : kind === 'quotation' ? 'quotations' : 'expenses'
   const { error } = await supabase.from(table).delete().eq('id', id)
