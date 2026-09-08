@@ -18,6 +18,7 @@ import Pill from '../components/Pill'
 import Icon from '../components/Icon'
 import ExportButton from '../components/ExportButton'
 import { exportObjects, downloadCsv, stampedName } from '../lib/csv'
+import { generateFinancePdf } from '../lib/pdf'
 import FinanceModal, { type FinanceKind } from '../modals/FinanceModal'
 
 interface Props {
@@ -175,6 +176,7 @@ export default function Finance({ profile }: Props) {
             rows={invoices}
             kind="invoice"
             clinics={clinics}
+            market={market}
             emptyText="No invoices yet."
             onEdit={(r) => setModal({ kind: 'invoice', editing: r })}
             onDelete={async (id) => {
@@ -195,6 +197,7 @@ export default function Finance({ profile }: Props) {
             rows={quotations}
             kind="quotation"
             clinics={clinics}
+            market={market}
             emptyText="No quotations yet."
             onEdit={(r) => setModal({ kind: 'quotation', editing: r })}
             onDelete={async (id) => {
@@ -272,6 +275,7 @@ function DocTab({
   rows,
   kind,
   clinics,
+  market,
   emptyText,
   onEdit,
   onDelete,
@@ -280,13 +284,16 @@ function DocTab({
   cur: string
   rows: (Invoice | Quotation)[]
   kind: 'invoice' | 'quotation'
-  clinics: { id: string; name: string }[]
+  clinics: import('../lib/types').Clinic[]
+  market: MarketKey
   emptyText: string
   onEdit: (r: Invoice | Quotation) => void
   onDelete: (id: string) => void
   onCycle: (r: Invoice | Quotation) => void
 }) {
-  const clinicName = (id: string | null) => clinics.find((c) => c.id === id)?.name ?? '—'
+  const clinicById = (id: string | null) => clinics.find((c) => c.id === id)
+  const clinicName = (id: string | null) => clinicById(id)?.name ?? '—'
+  const docNo = (i: number) => `${kind === 'invoice' ? 'INV' : 'QUO'}-${String(i + 1).padStart(3, '0')}`
   const totalAll = rows.reduce((a, r) => a + docTotal(r), 0)
   const paid = rows.filter((r) => (r as Invoice).status === 'Paid' || (r as Quotation).status === 'Accepted').reduce((a, r) => a + docTotal(r), 0)
   const outstanding = totalAll - paid
@@ -322,9 +329,7 @@ function DocTab({
           <tbody>
             {rows.map((r, i) => (
               <tr key={r.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
-                <td style={{ ...td, fontWeight: 700, color: 'var(--ink)' }}>
-                  {kind === 'invoice' ? 'INV' : 'QUO'}-{String(i + 1).padStart(3, '0')}
-                </td>
+                <td style={{ ...td, fontWeight: 700, color: 'var(--ink)' }}>{docNo(i)}</td>
                 <td style={{ ...td, color: 'var(--text)' }}>{clinicName(r.clinic_id)}</td>
                 <td style={{ ...td, color: 'var(--muted)' }}>
                   {shortDay(kind === 'invoice' ? (r as Invoice).due_date : r.issue_date)}
@@ -336,6 +341,12 @@ function DocTab({
                   </span>
                 </td>
                 <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <span
+                    onClick={() => { void generateFinancePdf(kind, r, clinicById(r.clinic_id), market, { docNumber: docNo(i) }).catch((e) => console.error(e)) }}
+                    style={{ cursor: 'pointer', color: 'var(--ink-2)', fontWeight: 700, fontSize: 12, marginRight: 12 }}
+                  >
+                    PDF
+                  </span>
                   <span onClick={() => onEdit(r)} style={{ cursor: 'pointer', color: 'var(--brand)', fontWeight: 700, fontSize: 12, marginRight: 12 }}>
                     Edit
                   </span>

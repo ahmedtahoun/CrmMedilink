@@ -9,6 +9,7 @@ import {
 import { useAppStore } from '../store/appStore'
 import { useClinics } from '../lib/clinics'
 import { saveExpense, saveInvoice, saveQuotation } from '../lib/finance'
+import { generateFinancePdf } from '../lib/pdf'
 import { docTotals, fmtMoney, num, todayStr } from '../lib/format'
 import Modal from '../components/Modal'
 import Icon from '../components/Icon'
@@ -271,9 +272,40 @@ export default function FinanceModal({ kind, editing, onClose, onSaved }: Props)
         <textarea className="ml-textarea" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
-      <button className="ml-btn" onClick={save} disabled={saving} style={{ width: '100%', padding: 11 }}>
-        {saving ? 'Saving…' : 'Save'}
-      </button>
+      <div style={{ display: 'flex', gap: 10 }}>
+        {hasLineItems && editing && (
+          <button
+            className="ml-btn ml-btn--ghost"
+            onClick={() => {
+              void generateFinancePdf(
+                kind as 'invoice' | 'quotation',
+                {
+                  ...(editing as Invoice | Quotation),
+                  clinic_id: clinicId || null,
+                  reference: reference || null,
+                  issue_date: issueDate || null,
+                  ...(kind === 'invoice' ? { due_date: dueDate || null } : { valid_until: validUntil || null }),
+                  status: status as never,
+                  discount_pct: num(discountPct),
+                  tax_pct: num(taxPct),
+                  notes: notes || null,
+                  line_items: items,
+                },
+                clinics.find((c) => c.id === clinicId),
+                market,
+                { docNumber: (editing as { id: string }).id.slice(0, 8).toUpperCase() },
+              ).catch((e) => console.error(e))
+            }}
+            style={{ flexShrink: 0, padding: 11 }}
+          >
+            <Icon name="download" size={14} strokeWidth={2.3} />
+            PDF
+          </button>
+        )}
+        <button className="ml-btn" onClick={save} disabled={saving} style={{ flex: 1, padding: 11 }}>
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+      </div>
     </Modal>
   )
 }

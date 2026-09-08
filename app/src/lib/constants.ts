@@ -158,3 +158,14 @@ export const ACCESS_MODULE_LABELS: Record<AccessModuleKey, string> = {
 }
 
 export const marketCountry = (m: MarketKey) => MARKET_BY_KEY[m].country
+
+// Appears on generated invoice / quotation PDFs. Edit to match the real entity.
+export const COMPANY = {
+  name: 'MediLink360',
+  tagline: 'Clinic Rollout & Training',
+  addressLines: ['Cairo, Egypt', 'hello@medilink360.ai', 'crm.medilink360.ai'],
+  paymentTerms: 'Payment due within 15 days of invoice date.',
+  quotationTerms:
+    'This quotation is valid until the date shown above. Prices are exclusive of any bank transfer fees. ' +
+    'A 1-month free trial precedes every subscription plan.',
+}
