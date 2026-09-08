@@ -8,6 +8,8 @@ import { catStyle, priStyle, initials, repColor } from '../lib/styles'
 import { stageTitle } from '../lib/pipeline'
 import Pill from '../components/Pill'
 import Icon from '../components/Icon'
+import ExportButton from '../components/ExportButton'
+import { exportObjects, stampedName } from '../lib/csv'
 import ClinicDetailModal from '../modals/ClinicDetailModal'
 import AddClinicModal from '../modals/AddClinicModal'
 
@@ -73,10 +75,38 @@ export default function Providers({ profile }: Props) {
               Master database — referenced by Sales, Trainer, Subscriptions and Reporting
             </p>
           </div>
-          <button className="ml-btn" onClick={() => setAddOpen(true)} style={{ flexShrink: 0 }}>
-            <Icon name="plus" size={16} strokeWidth={2.6} />
-            Add Provider
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <ExportButton
+              disabled={filtered.length === 0}
+              onClick={() =>
+                exportObjects<(typeof filtered)[number]>(
+                  stampedName(`providers-${market}`),
+                  [
+                    ['Name', (c) => c.name],
+                    ['Type', (c) => c.healthcare_type ?? 'Clinic'],
+                    ['Category', (c) => c.cat],
+                    ['Priority', (c) => c.pri],
+                    ['Area', (c) => c.area],
+                    ['Contact', (c) => c.contact],
+                    ['Phone', (c) => c.phone],
+                    ['Email', (c) => c.email],
+                    ['Sales stage', (c) => stageTitle('closer', c.cs)],
+                    ['Closer', (c) => c.closer],
+                    ['Trainer', (c) => c.trainer],
+                    ['Subscription', (c) => c.sub_status],
+                    ['MRR', (c) => c.mrr],
+                    ['Trial ends', (c) => c.trial_to],
+                    ['Created', (c) => c.created_at?.slice(0, 10)],
+                  ],
+                  filtered,
+                )
+              }
+            />
+            <button className="ml-btn" onClick={() => setAddOpen(true)}>
+              <Icon name="plus" size={16} strokeWidth={2.6} />
+              Add Provider
+            </button>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>

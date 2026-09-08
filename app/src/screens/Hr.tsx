@@ -7,6 +7,8 @@ import { initials, repColor } from '../lib/styles'
 import { shortDay } from '../lib/format'
 import Icon from '../components/Icon'
 import Pill from '../components/Pill'
+import ExportButton from '../components/ExportButton'
+import { exportObjects, stampedName } from '../lib/csv'
 import HrModal from '../modals/HrModal'
 
 interface Props {
@@ -96,12 +98,39 @@ export default function Hr({ profile }: Props) {
               CEO-only workspace — salary &amp; documents are private to this view
             </div>
           </div>
-          {canEdit && (
-            <button className="ml-btn" onClick={() => setModal({ editing: null })} style={{ flexShrink: 0 }}>
-              <Icon name="plus" size={16} strokeWidth={2.6} />
-              Add Employee
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <ExportButton
+              disabled={filtered.length === 0}
+              onClick={() =>
+                exportObjects<(typeof filtered)[number]>(
+                  stampedName('team-directory'),
+                  [
+                    ['Name', (e) => e.name],
+                    ['Email', (e) => e.email],
+                    ['Phone', (e) => e.phone],
+                    ['Country', (e) => e.country],
+                    ['Department', (e) => e.department],
+                    ['Position', (e) => e.position],
+                    ['Employment type', (e) => e.employment_type],
+                    ['Status', (e) => e.status],
+                    ['Start date', (e) => e.start_date],
+                    ['Manager', (e) => e.manager],
+                    ['Base salary', (e) => e.base_salary],
+                    ['Currency', (e) => e.currency],
+                    ['Commission %', (e) => e.commission_rate],
+                    ['Allowance', (e) => e.allowance],
+                  ],
+                  filtered,
+                )
+              }
+            />
+            {canEdit && (
+              <button className="ml-btn" onClick={() => setModal({ editing: null })}>
+                <Icon name="plus" size={16} strokeWidth={2.6} />
+                Add Employee
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

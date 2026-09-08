@@ -16,6 +16,8 @@ import {
 import { docTotals, fmtMoney, num, shortDay } from '../lib/format'
 import Pill from '../components/Pill'
 import Icon from '../components/Icon'
+import ExportButton from '../components/ExportButton'
+import { exportObjects, downloadCsv, stampedName } from '../lib/csv'
 import FinanceModal, { type FinanceKind } from '../modals/FinanceModal'
 
 interface Props {
@@ -66,6 +68,61 @@ export default function Finance({ profile }: Props) {
   const addLabel: Record<string, string> = { invoices: '+ New Invoice', quotations: '+ New Quotation', expenses: '+ New Expense' }
   const addKind: Record<string, FinanceKind> = { invoices: 'invoice', quotations: 'quotation', expenses: 'expense' }
 
+  const clinicName = (id: string | null) => clinics.find((c) => c.id === id)?.name ?? ''
+  const { cells: revCells } = useRevenueCells(market, new Date().getFullYear())
+
+  function doExport() {
+    if (tab === 'invoices' || tab === 'quotations') {
+      const rows = tab === 'invoices' ? invoices : quotations
+      exportObjects<(typeof rows)[number]>(
+        stampedName(`${tab}-${market}`),
+        [
+          ['Clinic', (r) => clinicName(r.clinic_id)],
+          ['Reference', (r) => r.reference],
+          ['Issue date', (r) => r.issue_date],
+          [tab === 'invoices' ? 'Due date' : 'Valid until', (r) => (r as Invoice).due_date ?? (r as Quotation).valid_until],
+          ['Status', (r) => r.status],
+          ['Discount %', (r) => r.discount_pct],
+          ['Tax %', (r) => r.tax_pct],
+          ['Total', (r) => docTotal(r)],
+          ['Currency', () => cur],
+        ],
+        rows,
+      )
+    } else if (tab === 'expenses') {
+      exportObjects<Expense>(
+        stampedName(`expenses-${market}`),
+        [
+          ['Description', (r) => r.description],
+          ['Category', (r) => r.category],
+          ['Vendor', (r) => r.vendor],
+          ['Date', (r) => r.date],
+          ['Amount', (r) => r.amount],
+          ['Currency', () => cur],
+        ],
+        expenses,
+      )
+    } else {
+      // revenue grid
+      const revClinics = clinics.filter((c) => c.cs === 'commission' || c.cs === 'signed')
+      const cell = (cid: string, m: number) => revCells.find((x) => x.clinic_id === cid && x.month === m)?.amount ?? 0
+      downloadCsv(
+        stampedName(`revenue-${market}-${new Date().getFullYear()}`),
+        ['Clinic', ...MONTHS, 'Total'],
+        revClinics.map((c) => {
+          const months = MONTHS.map((_m, i) => cell(c.id, i + 1))
+          return [c.name, ...months, months.reduce((a, b) => a + b, 0)]
+        }),
+      )
+    }
+  }
+
+  const exportDisabled =
+    (tab === 'invoices' && invoices.length === 0) ||
+    (tab === 'quotations' && quotations.length === 0) ||
+    (tab === 'expenses' && expenses.length === 0) ||
+    (tab === 'revenue' && clinics.filter((c) => c.cs === 'commission' || c.cs === 'signed').length === 0)
+
   return (
     <>
       <div style={{ padding: '22px 26px 0', flexShrink: 0 }}>
@@ -76,12 +133,15 @@ export default function Finance({ profile }: Props) {
             </h1>
             <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '6px 0 0' }}>{subtitle[tab]}</p>
           </div>
-          {tab !== 'revenue' && (
-            <button className="ml-btn" onClick={() => setModal({ kind: addKind[tab], editing: null })} style={{ flexShrink: 0 }}>
-              <Icon name="plus" size={15} strokeWidth={2.6} />
-              {addLabel[tab]}
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <ExportButton onClick={doExport} disabled={exportDisabled} />
+            {tab !== 'revenue' && (
+              <button className="ml-btn" onClick={() => setModal({ kind: addKind[tab], editing: null })}>
+                <Icon name="plus" size={15} strokeWidth={2.6} />
+                {addLabel[tab]}
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 4, background: 'var(--tab-track)', padding: 4, borderRadius: 11, marginBottom: 20, width: 'fit-content' }}>

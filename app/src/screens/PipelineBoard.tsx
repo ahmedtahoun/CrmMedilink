@@ -30,6 +30,8 @@ import TopBar from '../components/TopBar'
 import Pill from '../components/Pill'
 import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
+import ExportButton from '../components/ExportButton'
+import { exportObjects, stampedName } from '../lib/csv'
 import ClinicDetailModal from '../modals/ClinicDetailModal'
 import Calendar from './Calendar'
 import PipelineAnalytics from './PipelineAnalytics'
@@ -108,12 +110,37 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
         categories={CLINIC_CATEGORIES}
         reps={reps}
         right={
-          boardType === 'closer' && (
-            <button className="ml-btn" onClick={onAddClinic} style={{ fontSize: 13.5 }}>
-              <Icon name="plus" size={15} strokeWidth={2.6} />
-              Add clinic
-            </button>
-          )
+          <>
+            <ExportButton
+              disabled={flatRows.length === 0}
+              onClick={() =>
+                exportObjects<Clinic>(
+                  stampedName(`${boardType}-pipeline-${market}`),
+                  [
+                    ['Clinic', (c) => c.name],
+                    ['Category', (c) => c.cat],
+                    ['Priority', (c) => c.pri],
+                    ['Stage', (c) => stageTitle(boardType, boardType === 'closer' ? c.cs : c.ts ?? 'handoff')],
+                    ['Closer', (c) => c.closer],
+                    ['Trainer', (c) => c.trainer],
+                    ['Area', (c) => c.area],
+                    ['Contact', (c) => c.contact],
+                    ['Phone', (c) => c.phone],
+                    ['MRR', (c) => c.mrr],
+                    ['Subscription', (c) => c.sub_status],
+                    ['Trial ends', (c) => c.trial_to],
+                  ],
+                  flatRows,
+                )
+              }
+            />
+            {boardType === 'closer' && (
+              <button className="ml-btn" onClick={onAddClinic} style={{ fontSize: 13.5 }}>
+                <Icon name="plus" size={15} strokeWidth={2.6} />
+                Add clinic
+              </button>
+            )}
+          </>
         }
       />
 
