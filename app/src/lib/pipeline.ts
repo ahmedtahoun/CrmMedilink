@@ -4,6 +4,10 @@ import { daysUntil } from './format'
 
 export type BoardType = 'closer' | 'trainer'
 
+// A clinic is "closed won" — and so belongs on the trainer board — once Sales
+// moves it to Commission Based OR Contract Subscription.
+export const isTrainingEligible = (c: Clinic): boolean => c.cs === 'commission' || c.cs === 'signed'
+
 export function stageDefs(board: BoardType) {
   return board === 'closer' ? CLOSER_STAGES : TRAINER_STAGES
 }
@@ -15,8 +19,8 @@ export function stageTitle(board: BoardType, key: string): string {
 /** Which stage bucket a clinic lives in for a given board. */
 export function clinicStage(board: BoardType, c: Clinic): string | null {
   if (board === 'closer') return c.cs
-  // trainer board only shows signed clinics; map their ts (null => first stage)
-  if (c.cs !== 'signed') return null
+  // trainer board = every commission/subscription clinic; ts null => first stage
+  if (!isTrainingEligible(c)) return null
   return c.ts ?? 'handoff'
 }
 
@@ -33,7 +37,7 @@ export function filterAndSort(clinics: Clinic[], board: BoardType, f: PipelineFi
   const priRank: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
 
   let out = clinics.filter((c) => {
-    if (board === 'trainer' && c.cs !== 'signed') return false
+    if (board === 'trainer' && !isTrainingEligible(c)) return false
     if (f.priority !== 'all' && c.pri !== f.priority) return false
     if (f.category !== 'all' && c.cat !== f.category) return false
     if (f.repFilter !== 'all') {

@@ -322,7 +322,7 @@ function ClinicCard({
   const rep = board === 'closer' ? clinic.closer : clinic.trainer
   const flags = riskFlags(clinic)
   const tdl = trialDaysLeft(clinic)
-  const isLive = clinic.cs === 'signed' && clinic.ts === 'live'
+  const isLive = (clinic.cs === 'signed' || clinic.cs === 'commission') && clinic.ts === 'live'
   const isTrainer = board === 'trainer'
   const trainerStageKeys = ['handoff', 'scheduled', 'reception', 'followup', 'live']
   const progressPct = isTrainer
