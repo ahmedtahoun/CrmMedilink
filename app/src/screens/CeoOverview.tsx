@@ -38,10 +38,10 @@ export default function CeoOverview({ profile }: Props) {
   const marketStats = MARKETS.map((m) => {
     const rows = byMarket[m.key] ?? []
     const signed = rows.filter((c) => c.cs === 'signed').length
-    const live = rows.filter((c) => c.cs === 'signed' && c.ts === 'live').length
+    const liveCount = rows.filter((c) => c.cs === 'signed' && c.ts === 'live').length
     const mrrLocal = rows.filter((c) => c.sub_status !== 'inactive').reduce((a, c) => a + Number(c.mrr || 0), 0)
     const mrrUsd = mrrLocal * (rates[m.key] ?? 0)
-    return { ...m, count: rows.length, signed, live, mrrLocal, mrrUsd }
+    return { ...m, count: rows.length, signed, liveCount, mrrLocal, mrrUsd }
   })
 
   const totalUsd = marketStats.reduce((a, m) => a + m.mrrUsd, 0)
@@ -148,7 +148,7 @@ export default function CeoOverview({ profile }: Props) {
                 <>
                   <Row label="Clinics" value={String(m.count)} />
                   <Row label="Signed" value={String(m.signed)} />
-                  <Row label="Live" value={String(m.live)} accent="var(--brand)" />
+                  <Row label="Live" value={String(m.liveCount)} accent="var(--brand)" />
                   <Row label="MRR" value={`${m.currency} ${fmtMoney(m.mrrLocal)}`} />
                 </>
               ) : (
