@@ -168,7 +168,18 @@ export default function Finance({ profile }: Props) {
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 30px' }}>
-        {tab === 'revenue' && <RevenueTab market={market} cur={cur} clinics={clinics} />}
+        {tab === 'revenue' && (
+          <>
+            <MarketSummary
+              cur={cur}
+              marketLabel={MARKET_BY_KEY[market].label}
+              invoices={invoices}
+              quotations={quotations}
+              expenses={expenses}
+            />
+            <RevenueTab market={market} cur={cur} clinics={clinics} />
+          </>
+        )}
 
         {tab === 'invoices' && (
           <DocTab
@@ -238,6 +249,90 @@ export default function Finance({ profile }: Props) {
         />
       )}
     </>
+  )
+}
+
+function MarketSummary({
+  cur,
+  marketLabel,
+  invoices,
+  quotations,
+  expenses,
+}: {
+  cur: string
+  marketLabel: string
+  invoices: Invoice[]
+  quotations: Quotation[]
+  expenses: Expense[]
+}) {
+  const quotedValue = quotations.reduce((a, q) => a + docTotal(q), 0)
+  const acceptedValue = quotations.filter((q) => q.status === 'Accepted').reduce((a, q) => a + docTotal(q), 0)
+  const invoicedValue = invoices.reduce((a, i) => a + docTotal(i), 0)
+  const paidValue = invoices.filter((i) => i.status === 'Paid').reduce((a, i) => a + docTotal(i), 0)
+  const outstanding = invoicedValue - paidValue
+  const expenseValue = expenses.reduce((a, e) => a + num(e.amount), 0)
+  const net = paidValue - expenseValue
+
+  const cards: { label: string; value: string; sub: string; accent?: string }[] = [
+    {
+      label: 'Quotations',
+      value: `${cur} ${fmtMoney(quotedValue)}`,
+      sub: `${quotations.length} issued · ${cur} ${fmtMoney(acceptedValue)} accepted`,
+    },
+    {
+      label: 'Invoiced',
+      value: `${cur} ${fmtMoney(invoicedValue)}`,
+      sub: `${invoices.length} invoices · ${cur} ${fmtMoney(outstanding)} outstanding`,
+      accent: 'var(--warn)',
+    },
+    {
+      label: 'Collected',
+      value: `${cur} ${fmtMoney(paidValue)}`,
+      sub: `${invoices.filter((i) => i.status === 'Paid').length} paid invoices`,
+      accent: 'var(--ok)',
+    },
+    {
+      label: 'Expenses',
+      value: `${cur} ${fmtMoney(expenseValue)}`,
+      sub: `${expenses.length} logged`,
+      accent: 'var(--danger)',
+    },
+    {
+      label: 'Net (collected − expenses)',
+      value: `${cur} ${fmtMoney(net)}`,
+      sub: net >= 0 ? 'in the black' : 'in the red',
+      accent: net >= 0 ? 'var(--ok)' : 'var(--danger)',
+    },
+  ]
+
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          letterSpacing: 0.5,
+          textTransform: 'uppercase',
+          color: 'var(--muted-4)',
+          marginBottom: 10,
+        }}
+      >
+        {marketLabel} · financial summary
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 12 }}>
+        {cards.map((c) => (
+          <div key={c.label} className="ml-card" style={{ borderRadius: 13, padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--muted-4)', marginBottom: 6 }}>
+              {c.label}
+            </div>
+            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 21, letterSpacing: '-.4px', color: c.accent ?? 'var(--ink)' }}>
+              {c.value}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, marginTop: 4 }}>{c.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
