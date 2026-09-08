@@ -151,12 +151,11 @@ export async function generateFinancePdf(
   }
 
   // ---- footer (letterhead) ----
-  const footY = pdf.internal.pageSize.getHeight() - 34
+  const footY = pdf.internal.pageSize.getHeight() - 30
   pdf.setDrawColor(221, 227, 230).setLineWidth(0.5)
   pdf.line(M, footY - 12, pageW - M, footY - 12)
   pdf.setFontSize(7.5).setTextColor(MUTED)
   pdf.text(COMPANY.footer, pageW / 2, footY, { align: 'center' })
-  pdf.text(`${title} ${meta.docNumber}`, pageW / 2, footY + 11, { align: 'center' })
 
   pdf.save(`${kind === 'invoice' ? 'Invoice' : 'Quotation'}-${meta.docNumber}.pdf`)
 }
