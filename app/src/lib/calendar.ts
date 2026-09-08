@@ -3,6 +3,10 @@ import { supabase } from './supabase'
 import type { CalendarEvent } from './types'
 import type { MarketKey } from './constants'
 
+// Set once if the project's Realtime service rejects the socket; the app then
+// relies on reload()-after-mutation instead of retry-spamming.
+let realtimeDisabled = false
+
 export function useCalendarEvents(market: MarketKey) {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,10 +31,16 @@ export function useCalendarEvents(market: MarketKey) {
   }, [market, tick])
 
   useEffect(() => {
+    if (realtimeDisabled) return
     const ch = supabase
       .channel(`cal:${market}:${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => reload())
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          realtimeDisabled = true
+          supabase.removeChannel(ch)
+        }
+      })
     return () => {
       supabase.removeChannel(ch)
     }

@@ -19,6 +19,7 @@ interface MarketCache {
   loaded: boolean
   listeners: Set<() => void>
   channel: ReturnType<typeof supabase.channel> | null
+  realtimeDisabled: boolean
 }
 
 const caches = new Map<MarketKey, MarketCache>()
@@ -26,7 +27,15 @@ const caches = new Map<MarketKey, MarketCache>()
 function getCache(market: MarketKey): MarketCache {
   let c = caches.get(market)
   if (!c) {
-    c = { data: [], loading: false, error: null, loaded: false, listeners: new Set(), channel: null }
+    c = {
+      data: [],
+      loading: false,
+      error: null,
+      loaded: false,
+      listeners: new Set(),
+      channel: null,
+      realtimeDisabled: false,
+    }
     caches.set(market, c)
   }
   return c
@@ -57,7 +66,7 @@ async function fetchMarket(market: MarketKey) {
 
 function ensureChannel(market: MarketKey) {
   const c = getCache(market)
-  if (c.channel) return
+  if (c.channel || c.realtimeDisabled) return
   const ch = supabase.channel(`clinics:${market}:${Math.random().toString(36).slice(2)}`)
   ch.on('postgres_changes', { event: '*', schema: 'public', table: 'clinics' }, (payload) => {
     const row = (payload.new ?? payload.old) as Clinic
@@ -76,7 +85,15 @@ function ensureChannel(market: MarketKey) {
     }
     emit(c)
   })
-  ch.subscribe()
+  ch.subscribe((status) => {
+    // If Realtime isn't enabled for the project the handshake 400s; stop
+    // retrying and fall back to reload()-after-mutation (already wired).
+    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+      c.realtimeDisabled = true
+      supabase.removeChannel(ch)
+      c.channel = null
+    }
+  })
   c.channel = ch
 }
 
