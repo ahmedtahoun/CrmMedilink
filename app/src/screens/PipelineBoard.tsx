@@ -31,6 +31,7 @@ import Pill from '../components/Pill'
 import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
 import ClinicDetailModal from '../modals/ClinicDetailModal'
+import Calendar from './Calendar'
 
 interface Props {
   profile: Profile
@@ -50,9 +51,12 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
   const [detailId, setDetailId] = useState<string | null>(null)
   const [dragId, setDragId] = useState<string | null>(null)
 
-  const filters = { search, priority, category, sort, repFilter }
-  const columns = useMemo(() => buildColumns(clinics, boardType, filters), [clinics, boardType, search, priority, category, sort, repFilter])
-  const flatRows = useMemo(() => filterAndSort(clinics, boardType, filters), [clinics, boardType, search, priority, category, sort, repFilter])
+  const filters = useMemo(
+    () => ({ search, priority, category, sort, repFilter }),
+    [search, priority, category, sort, repFilter],
+  )
+  const columns = useMemo(() => buildColumns(clinics, boardType, filters), [clinics, boardType, filters])
+  const flatRows = useMemo(() => filterAndSort(clinics, boardType, filters), [clinics, boardType, filters])
 
   const reps = useMemo(() => {
     const key = boardType === 'closer' ? 'closer' : 'trainer'
@@ -86,16 +90,18 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
   const tabs = [
     { key: 'board', label: 'Board' as const },
     { key: 'table', label: 'Table' as const },
+    { key: 'calendar', label: 'Calendar' as const },
   ]
+  const activeTab = view === 'table' ? 'table' : view === 'calendar' ? 'calendar' : 'board'
 
   return (
     <>
       <TopBar
         title={boardType === 'trainer' ? 'Training pipeline' : 'Sales pipeline'}
         tabs={tabs}
-        activeTab={view === 'analytics' || view === 'board' ? 'board' : 'table'}
-        onTab={(k) => setView(k as 'board' | 'table')}
-        showFilters
+        activeTab={activeTab}
+        onTab={(k) => setView(k as 'board' | 'table' | 'calendar')}
+        showFilters={activeTab !== 'calendar'}
         categories={CLINIC_CATEGORIES}
         reps={reps}
         right={
@@ -108,6 +114,9 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
         }
       />
 
+      {view === 'calendar' && <Calendar />}
+
+      {view !== 'calendar' && (
       <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px' }}>
         {loading && <div className="ml-empty">Loading clinics…</div>}
         {error && <div className="ml-empty" style={{ color: 'var(--danger)' }}>{error}</div>}
@@ -182,6 +191,7 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
           />
         )}
       </div>
+      )}
 
       {detailId && (
         <ClinicDetailModal

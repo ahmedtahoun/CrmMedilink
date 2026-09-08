@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { MarketKey, Workspace } from '../lib/constants'
 
 type BoardType = 'closer' | 'trainer'
-type BoardView = 'board' | 'table' | 'analytics'
+type BoardView = 'board' | 'table' | 'analytics' | 'calendar'
 type CalView = 'month' | 'week' | 'day'
 
 interface AppState {
