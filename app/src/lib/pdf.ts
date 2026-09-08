@@ -1,7 +1,6 @@
 import { COMPANY, MARKET_BY_KEY, type MarketKey } from './constants'
 import type { Clinic, Invoice, LineItem, Quotation } from './types'
 import { docTotals, fmtMoney } from './format'
-import { LOGO_PNG_DATA_URI } from './logo'
 
 const LOGO_W = 150
 const LOGO_H = (LOGO_W * 132) / 580 // native logo is 580 x 132
@@ -24,9 +23,10 @@ export async function generateFinancePdf(
   market: MarketKey,
   meta: Meta,
 ): Promise<void> {
-  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+  const [{ default: jsPDF }, { default: autoTable }, { LOGO_PNG_DATA_URI }] = await Promise.all([
     import('jspdf'),
     import('jspdf-autotable'),
+    import('./logo'),
   ])
   const cur = MARKET_BY_KEY[market].currency
   const pdf = new jsPDF({ unit: 'pt', format: 'a4' })
