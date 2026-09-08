@@ -32,6 +32,7 @@ import Avatar from '../components/Avatar'
 import Icon from '../components/Icon'
 import ClinicDetailModal from '../modals/ClinicDetailModal'
 import Calendar from './Calendar'
+import PipelineAnalytics from './PipelineAnalytics'
 
 interface Props {
   profile: Profile
@@ -90,9 +91,11 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
   const tabs = [
     { key: 'board', label: 'Board' as const },
     { key: 'table', label: 'Table' as const },
+    { key: 'analytics', label: 'Analytics' as const },
     { key: 'calendar', label: 'Calendar' as const },
   ]
-  const activeTab = view === 'table' ? 'table' : view === 'calendar' ? 'calendar' : 'board'
+  const activeTab =
+    view === 'table' ? 'table' : view === 'calendar' ? 'calendar' : view === 'analytics' ? 'analytics' : 'board'
 
   return (
     <>
@@ -100,8 +103,8 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
         title={boardType === 'trainer' ? 'Training pipeline' : 'Sales pipeline'}
         tabs={tabs}
         activeTab={activeTab}
-        onTab={(k) => setView(k as 'board' | 'table' | 'calendar')}
-        showFilters={activeTab !== 'calendar'}
+        onTab={(k) => setView(k as 'board' | 'table' | 'calendar' | 'analytics')}
+        showFilters={activeTab === 'board' || activeTab === 'table'}
         categories={CLINIC_CATEGORIES}
         reps={reps}
         right={
@@ -116,7 +119,14 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
 
       {view === 'calendar' && <Calendar />}
 
-      {view !== 'calendar' && (
+      {view === 'analytics' && (
+        <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px' }}>
+          {loading && <div className="ml-empty">Loading clinics…</div>}
+          {!loading && <PipelineAnalytics clinics={clinics} board={boardType} />}
+        </div>
+      )}
+
+      {view !== 'calendar' && view !== 'analytics' && (
       <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px' }}>
         {loading && <div className="ml-empty">Loading clinics…</div>}
         {error && <div className="ml-empty" style={{ color: 'var(--danger)' }}>{error}</div>}
