@@ -142,23 +142,15 @@ export async function generateFinancePdf(
   pdf.text(`${cur} ${fmtMoney(t.total)}`, pageW - M, y, { align: 'right' })
   y += 30
 
-  // ---- notes + terms ----
+  // ---- notes (from the record; only if filled) ----
   if (doc.notes) {
     pdf.setFont('helvetica', 'bold').setFontSize(8).setTextColor(MUTED)
     pdf.text('NOTES', M, y)
     pdf.setFont('helvetica', 'normal').setFontSize(9).setTextColor(INK)
-    const noteLines = pdf.splitTextToSize(doc.notes, pageW - M * 2)
-    pdf.text(noteLines, M, y + 14)
-    y += 14 + noteLines.length * 12 + 12
+    pdf.text(pdf.splitTextToSize(doc.notes, pageW - M * 2), M, y + 14)
   }
 
-  pdf.setFont('helvetica', 'bold').setFontSize(8).setTextColor(MUTED)
-  pdf.text('TERMS', M, y)
-  pdf.setFont('helvetica', 'normal').setFontSize(8.5).setTextColor(MUTED)
-  const terms = kind === 'invoice' ? COMPANY.paymentTerms : COMPANY.quotationTerms
-  pdf.text(pdf.splitTextToSize(terms, pageW - M * 2), M, y + 13)
-
-  // ---- footer ----
+  // ---- footer (letterhead) ----
   const footY = pdf.internal.pageSize.getHeight() - 34
   pdf.setDrawColor(221, 227, 230).setLineWidth(0.5)
   pdf.line(M, footY - 12, pageW - M, footY - 12)
