@@ -45,11 +45,15 @@ export default function ManageUsersModal({ me, onClose }: Props) {
       .select('*')
       .order('created_at', { ascending: true })
       .then(({ data }) => {
-        setRows((data as Profile[]) ?? [])
+        const all = (data as Profile[]) ?? []
+        // Admin rows are visible only to another Admin (RLS enforces this too;
+        // this is the UI belt-and-braces).
+        setRows(me.role === 'Admin' ? all : all.filter((u) => u.role !== 'Admin'))
         setLoading(false)
       })
   }
-  useEffect(load, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(load, [me.role])
 
   async function setRole(p: Profile, role: Role) {
     setBusy(p.id)
