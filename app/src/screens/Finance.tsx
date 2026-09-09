@@ -131,7 +131,7 @@ export default function Finance({ profile }: Props) {
       <div style={{ padding: isMobile ? '14px 14px 0' : '22px 26px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 18 : 23, letterSpacing: '-.6px', margin: 0, color: 'var(--ink)', paddingLeft: isMobile ? 44 : 0 }}>
+            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 18 : 23, letterSpacing: '-.6px', margin: 0, color: 'var(--ink)', paddingLeft: isMobile ? 52 : 0 }}>
               Finance <span style={{ color: 'var(--brand)', fontWeight: 600 }}>— {MARKET_BY_KEY[market].label}</span>
             </h1>
             {!isMobile && <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '6px 0 0' }}>{subtitle[tab]}</p>}
@@ -269,6 +269,7 @@ function MarketSummary({
   quotations: Quotation[]
   expenses: Expense[]
 }) {
+  const isMobile = useIsMobile()
   const quotedValue = quotations.reduce((a, q) => a + docTotal(q), 0)
   const acceptedValue = quotations.filter((q) => q.status === 'Accepted').reduce((a, q) => a + docTotal(q), 0)
   const invoicedValue = invoices.reduce((a, i) => a + docTotal(i), 0)
@@ -323,16 +324,16 @@ function MarketSummary({
       >
         {marketLabel} · financial summary
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit,minmax(170px,1fr))', gap: isMobile ? 10 : 12 }}>
         {cards.map((c) => (
-          <div key={c.label} className="ml-card" style={{ borderRadius: 13, padding: '14px 16px' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--muted-4)', marginBottom: 6 }}>
+          <div key={c.label} className="ml-card" style={{ borderRadius: 13, padding: isMobile ? '14px 16px' : '14px 16px' }}>
+            <div style={{ fontSize: isMobile ? 11.5 : 11, fontWeight: 800, letterSpacing: 0.3, textTransform: 'uppercase', color: 'var(--muted-2)', marginBottom: 6 }}>
               {c.label}
             </div>
-            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 21, letterSpacing: '-.4px', color: c.accent ?? 'var(--ink)' }}>
+            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 25 : 21, letterSpacing: '-.4px', color: c.accent ?? 'var(--ink)' }}>
               {c.value}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, marginTop: 4 }}>{c.sub}</div>
+            <div style={{ fontSize: isMobile ? 12 : 11, color: 'var(--muted)', fontWeight: 600, marginTop: 4 }}>{c.sub}</div>
           </div>
         ))}
       </div>
@@ -341,14 +342,15 @@ function MarketSummary({
 }
 
 function KpiRow({ kpis }: { kpis: { label: string; value: string; accent?: string }[] }) {
+  const isMobile = useIsMobile()
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, marginBottom: 18 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit,minmax(180px,1fr))', gap: isMobile ? 10 : 12, marginBottom: 18 }}>
       {kpis.map((k) => (
-        <div key={k.label} className="ml-card" style={{ borderRadius: 13, padding: '15px 17px' }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--muted-4)', marginBottom: 7 }}>
+        <div key={k.label} className="ml-card" style={{ borderRadius: 13, padding: isMobile ? '13px 14px' : '15px 17px' }}>
+          <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--muted-2)', marginBottom: 7 }}>
             {k.label}
           </div>
-          <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 24, letterSpacing: '-.6px', color: k.accent ?? 'var(--ink)' }}>
+          <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 22 : 24, letterSpacing: '-.6px', color: k.accent ?? 'var(--ink)' }}>
             {k.value}
           </div>
         </div>

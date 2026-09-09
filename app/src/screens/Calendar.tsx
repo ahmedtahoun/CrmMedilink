@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useIsMobile } from '../lib/useIsMobile'
 import type { CalendarEvent, Clinic } from '../lib/types'
 import { CAL_EVENT_TYPES, CAL_PRIORITIES, type MarketKey } from '../lib/constants'
@@ -45,11 +45,6 @@ export default function Calendar() {
   const calSelectedDate = useAppStore((s) => s.calSelectedDate)
   const setCalSelectedDate = useAppStore((s) => s.setCalSelectedDate)
   const isMobile = useIsMobile()
-
-  // The month grid is unusable at phone width — snap to the day agenda.
-  useEffect(() => {
-    if (isMobile && calView === 'month') setCalView('day')
-  }, [isMobile, calView, setCalView])
 
   const { events, reload } = useCalendarEvents(market)
   const { clinics } = useClinics(market)
@@ -149,7 +144,7 @@ export default function Calendar() {
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: 3, background: '#0c1920', padding: 4, borderRadius: 11 }}>
-              {(isMobile ? (['day', 'week'] as const) : (['day', 'week', 'month'] as const)).map((v) => (
+              {(['day', 'week', 'month'] as const).map((v) => (
                 <div
                   key={v}
                   onClick={() => setCalView(v)}
@@ -193,7 +188,8 @@ export default function Calendar() {
         </div>
 
         {calView === 'month' && (
-          <>
+          <div style={{ overflowX: isMobile ? 'auto' : undefined, WebkitOverflowScrolling: 'touch' }}>
+           <div style={{ minWidth: isMobile ? 680 : undefined }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 8, marginBottom: 8 }}>
               {WD.map((w) => (
                 <div key={w} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#96a3ab', padding: '4px 0' }}>
@@ -213,7 +209,7 @@ export default function Calendar() {
                       setCalView('day')
                     }}
                     style={{
-                      minHeight: 96,
+                      minHeight: isMobile ? 82 : 96,
                       border: `1.5px solid ${cell.date === today ? 'var(--brand)' : '#eef1f3'}`,
                       borderRadius: 11,
                       padding: 7,
@@ -267,7 +263,8 @@ export default function Calendar() {
                 ),
               )}
             </div>
-          </>
+           </div>
+          </div>
         )}
 
         {calView === 'week' && (

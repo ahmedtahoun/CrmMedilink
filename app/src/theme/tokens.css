@@ -177,7 +177,9 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 40;
+  /* Above the mobile slide-over sidebar (120) and its floating menu button
+     so a modal's own header/close control are never covered on phones. */
+  z-index: 130;
 }
 .ml-modal {
   background: #fff;
@@ -246,7 +248,7 @@ a { color: inherit; }
   .ml-shell-menu-btn { display: inline-flex !important; }
   /* keep the first content row clear of the floating menu button */
   main > *:first-of-type { padding-top: 8px; }
-  main h1 { padding-left: 44px; }
+  main h1 { padding-left: 52px; }
 }
 
 .ml-shell-menu-btn { display: none; }

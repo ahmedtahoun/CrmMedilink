@@ -69,18 +69,19 @@ export default function AppShell({ profile }: AppShellProps) {
           aria-label="Open menu"
           style={{
             position: 'absolute',
-            top: 14,
-            left: 14,
+            top: 12,
+            left: 12,
             zIndex: 90,
-            width: 38,
-            height: 38,
+            width: 36,
+            height: 36,
             borderRadius: 10,
             border: '1px solid var(--border)',
             background: '#fff',
+            boxShadow: '0 2px 10px rgba(12,25,32,.14)',
             cursor: 'pointer',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 18,
+            fontSize: 17,
             color: 'var(--ink)',
           }}
         >

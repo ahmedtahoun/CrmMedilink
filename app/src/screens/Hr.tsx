@@ -92,7 +92,7 @@ export default function Hr({ profile }: Props) {
       <div style={{ padding: isMobile ? '14px 14px 0' : '20px 26px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div>
-            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 18 : 23, letterSpacing: '-.6px', margin: '0 0 4px', color: 'var(--ink)', paddingLeft: isMobile ? 44 : 0 }}>
+            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 18 : 23, letterSpacing: '-.6px', margin: '0 0 4px', color: 'var(--ink)', paddingLeft: isMobile ? 52 : 0 }}>
               Team Directory
             </h1>
             {!isMobile && (

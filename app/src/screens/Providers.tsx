@@ -70,7 +70,7 @@ export default function Providers({ profile }: Props) {
       <div style={{ padding: isMobile ? '14px 14px 0' : '20px 26px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div>
-            <h1 style={{ margin: '0 0 4px', fontSize: isMobile ? 18 : 23, fontWeight: 700, letterSpacing: '-.6px', color: 'var(--ink)', paddingLeft: isMobile ? 44 : 0 }}>
+            <h1 style={{ margin: '0 0 4px', fontSize: isMobile ? 18 : 23, fontWeight: 700, letterSpacing: '-.6px', color: 'var(--ink)', paddingLeft: isMobile ? 52 : 0 }}>
               Healthcare Providers <span style={{ color: 'var(--brand)', fontWeight: 600 }}>— {marketLabel}</span>
             </h1>
             {!isMobile && (

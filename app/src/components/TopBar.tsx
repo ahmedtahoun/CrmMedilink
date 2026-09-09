@@ -64,7 +64,7 @@ export default function TopBar({
             fontWeight: 700,
             letterSpacing: '-.6px',
             color: 'var(--ink)',
-            paddingLeft: isMobile ? 44 : 0,
+            paddingLeft: isMobile ? 52 : 0,
           }}
         >
           {title}
