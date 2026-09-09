@@ -1,11 +1,11 @@
+# === release branch ===
+# This branch holds ONLY the built static site at repo root, cloned straight
+# into the crm.medilink360.ai web root by cPanel Git Version Control.
+# Everything else (source, tooling, node_modules) lives on `main`.
+/app/
+/design_handoff_medilink360/
+/.claude/
 node_modules
 .DS_Store
 *.log
-
-# env
-app/.env.local
-app/.env.*.local
-
-# build output is committed on the `release` branch only (see README > Deploy);
-# ignore it on main/feature branches.
-app/dist
+"Prototype proposal for manager.zip"

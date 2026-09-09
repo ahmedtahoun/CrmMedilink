@@ -3,6 +3,10 @@
 
 RewriteEngine On
 
+# Block direct access to the repo's .git metadata (this branch is cloned
+# straight into the web root by cPanel Git Version Control).
+RewriteRule (^|/)\.git - [F,L]
+
 # Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
