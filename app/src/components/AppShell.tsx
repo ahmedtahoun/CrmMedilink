@@ -102,7 +102,7 @@ export default function AppShell({ profile }: AppShellProps) {
       </main>
 
       <Toast />
-      {manageUsers && <ManageUsersModal onClose={() => setManageUsers(false)} />}
+      {manageUsers && <ManageUsersModal me={profile} onClose={() => setManageUsers(false)} />}
       {addClinic && <AddClinicModal onClose={() => setAddClinic(false)} />}
     </div>
   )
