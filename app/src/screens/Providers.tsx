@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import type { Clinic, Profile } from '../lib/types'
-import { HEALTHCARE_TYPES, MARKETS } from '../lib/constants'
+import { CLOSER_STAGES, HEALTHCARE_TYPES, MARKETS } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { useIsMobile } from '../lib/useIsMobile'
-import { useClinics } from '../lib/clinics'
+import { useClinics, updateClinic } from '../lib/clinics'
 import { supabase } from '../lib/supabase'
 import { catStyle, priStyle, initials, repColor } from '../lib/styles'
 import { stageTitle } from '../lib/pipeline'
@@ -26,6 +26,14 @@ export default function Providers({ profile }: Props) {
   const showToast = useAppStore((s) => s.showToast)
   const isMobile = useIsMobile()
   const { clinics, loading, error, reload } = useClinics(market)
+  // Sales / CEO / Admin can move a lead along the pipeline straight from this list.
+  const canSetStage = profile.role === 'Sales' || profile.role === 'CEO' || profile.role === 'Admin'
+
+  async function setStage(id: string, cs: string) {
+    const err = await updateClinic(id, { cs: cs as Clinic['cs'], cs_date: new Date().toISOString().slice(0, 10) })
+    if (err) showToast(err)
+    else showToast(`Moved to ${stageTitle('closer', cs)}`)
+  }
 
   const [q, setQ] = useState('')
   const [typeF, setTypeF] = useState('all')
@@ -58,7 +66,7 @@ export default function Providers({ profile }: Props) {
     const { error: e } = await supabase.from('clinics').delete().eq('id', id)
     if (e) showToast(e.message)
     else {
-      showToast('Provider deleted')
+      showToast('Lead deleted')
       reload()
     }
   }
@@ -71,11 +79,11 @@ export default function Providers({ profile }: Props) {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ margin: '0 0 4px', fontSize: isMobile ? 18 : 23, fontWeight: 700, letterSpacing: '-.6px', color: 'var(--ink)', paddingLeft: isMobile ? 52 : 0 }}>
-              Healthcare Providers <span style={{ color: 'var(--brand)', fontWeight: 600 }}>— {marketLabel}</span>
+              Leads <span style={{ color: 'var(--brand)', fontWeight: 600 }}>— {marketLabel}</span>
             </h1>
             {!isMobile && (
               <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: 0 }}>
-                Master database — referenced by Sales, Trainer, Subscriptions and Reporting
+                Every clinic Sales has added — move each one from Lead through to a signed contract
               </p>
             )}
           </div>
@@ -108,7 +116,7 @@ export default function Providers({ profile }: Props) {
             />
             <button className="ml-btn" onClick={() => setAddOpen(true)}>
               <Icon name="plus" size={16} strokeWidth={2.6} />
-              Add Provider
+              Add Lead
             </button>
           </div>
         </div>
@@ -118,7 +126,7 @@ export default function Providers({ profile }: Props) {
             <span style={{ position: 'absolute', left: 13, color: '#93a1aa', display: 'flex' }}>
               <Icon name="search" size={16} strokeWidth={2} />
             </span>
-            <input className="ml-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search provider, city, contact…" style={{ paddingLeft: 38, borderRadius: 11 }} />
+            <input className="ml-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search lead, city, contact…" style={{ paddingLeft: 38, borderRadius: 11 }} />
           </div>
           <select className="ml-select" value={typeF} onChange={(e) => setTypeF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
             <option value="all">All types</option>
@@ -144,7 +152,7 @@ export default function Providers({ profile }: Props) {
             {!loading && rows.map((c) => (
               <ProviderCard key={c.id} c={c} onOpen={() => setDetailId(c.id)} onDelete={() => del(c.id, c.name)} />
             ))}
-            {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '40px 0' }}>No providers match your filters</div>}
+            {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '40px 0' }}>No leads match your filters</div>}
           </div>
         ) : (
         <div className="ml-card" style={{ overflow: 'hidden' }}>
@@ -163,7 +171,7 @@ export default function Providers({ profile }: Props) {
               letterSpacing: 0.4,
             }}
           >
-            <div>Provider</div>
+            <div>Lead</div>
             <div>Location</div>
             <div>Stage</div>
             <div>Priority</div>
@@ -215,7 +223,24 @@ export default function Providers({ profile }: Props) {
                 </div>
               </div>
               <div style={{ color: 'var(--muted)' }}>{c.area || '—'}</div>
-              <div style={{ color: 'var(--text)' }}>{stageTitle('closer', c.cs)}</div>
+              <div onClick={(e) => e.stopPropagation()}>
+                {canSetStage ? (
+                  <select
+                    value={c.cs}
+                    onChange={(e) => setStage(c.id, e.target.value)}
+                    className="ml-select"
+                    style={{ padding: '5px 7px', fontSize: 11.5, fontWeight: 600, width: 'auto', borderRadius: 8 }}
+                  >
+                    {CLOSER_STAGES.map((s) => (
+                      <option key={s.key} value={s.key}>
+                        {s.title}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span style={{ color: 'var(--text)' }}>{stageTitle('closer', c.cs)}</span>
+                )}
+              </div>
               <div>
                 <Pill swatch={priStyle(c.pri)}>{c.pri}</Pill>
               </div>
@@ -237,7 +262,7 @@ export default function Providers({ profile }: Props) {
             </div>
           ))}
 
-          {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '48px 0' }}>No providers match your filters</div>}
+          {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '48px 0' }}>No leads match your filters</div>}
         </div>
         )}
 

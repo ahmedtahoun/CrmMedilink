@@ -38,7 +38,8 @@ export const DEFAULT_FX: Record<MarketKey, number> = {
 
 // --- Sales pipeline (closer board) ---
 export const CLOSER_STAGES = [
-  { key: 'lead', title: 'Visits' },
+  { key: 'lead', title: 'Leads' },
+  { key: 'visit', title: 'Visits' },
   { key: 'followup', title: 'Follow up Visit' },
   { key: 'proposal', title: 'Proposal Sent' },
   { key: 'commission', title: 'Commission Based' },
@@ -126,7 +127,7 @@ export type Workspace =
 
 export const WORKSPACE_ITEMS: { key: Workspace; label: string; ceoOnly?: boolean }[] = [
   { key: 'ceo', label: 'CEO Overview', ceoOnly: true },
-  { key: 'providers', label: 'Providers' },
+  { key: 'providers', label: 'Leads' },
   { key: 'closer', label: 'Sales Closer' },
   { key: 'trainer', label: 'Trainer' },
   { key: 'finance', label: 'Finance' },
@@ -149,7 +150,7 @@ export const ACCESS_MODULE_KEYS = ['ceo', 'providers', 'closer', 'trainer', 'doc
 export type AccessModuleKey = (typeof ACCESS_MODULE_KEYS)[number]
 export const ACCESS_MODULE_LABELS: Record<AccessModuleKey, string> = {
   ceo: 'CEO Overview',
-  providers: 'Providers',
+  providers: 'Leads',
   closer: 'Sales Closer',
   trainer: 'Trainer',
   documents: 'Documents',

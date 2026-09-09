@@ -36,7 +36,8 @@ type Tab = 'overview' | 'training' | 'tasks' | 'files'
 
 // stage -> {label for the button, next stage key}
 const CLOSER_NEXT: Record<string, { label: string; next: string }> = {
-  lead: { label: 'Log Follow-up', next: 'followup' },
+  lead: { label: 'Log Visit', next: 'visit' },
+  visit: { label: 'Log Follow-up', next: 'followup' },
   followup: { label: 'Send Proposal', next: 'proposal' },
   proposal: { label: 'Mark Commission Based', next: 'commission' },
   commission: { label: 'Mark Contract Signed', next: 'signed' },

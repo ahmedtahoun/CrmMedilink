@@ -10,7 +10,7 @@ interface Props {
   board: BoardType
 }
 
-const STAGE_ORDER = ['lead', 'followup', 'proposal', 'commission', 'signed']
+const STAGE_ORDER = ['lead', 'visit', 'followup', 'proposal', 'commission', 'signed']
 
 export default function PipelineAnalytics({ clinics }: Props) {
   const a = useMemo(() => {
