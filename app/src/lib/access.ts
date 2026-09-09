@@ -34,8 +34,8 @@ export function visibleWorkspaces(role: Role, matrix: AccessMatrix): Set<Workspa
       if (matrix[col]?.[mod]) out.add(mod as Workspace)
     }
   }
-  // finance is not in the access matrix; grant it to non-CEO only alongside closer/trainer
-  if (out.has('closer') || out.has('trainer')) out.add('finance')
+  // Finance (and CEO Overview / HR / Manage Access) is CEO/Admin only —
+  // never granted to Sales or Trainer, regardless of the access matrix.
   return out
 }
 
