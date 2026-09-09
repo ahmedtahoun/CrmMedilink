@@ -1,5 +1,5 @@
 -- MediLink360 full setup — paste into the Supabase SQL editor and Run (fresh project only).
--- migrations 0001..0007 in order.
+-- migrations 0001..0008 in order.
 
 ------------------------------ migrations/0001_init.sql ------------------------------
 -- MediLink360 — core schema
@@ -734,4 +734,26 @@ drop trigger if exists profiles_guard_delete on public.profiles;
 create trigger profiles_guard_delete
   before delete on public.profiles
   for each row execute function public.guard_profile_delete();
+
+------------------------------ migrations/0008_profiles_read_scope.sql ------------------------------
+-- MediLink360 — hide Admin accounts from CEO / staff at the data layer.
+--
+--   own row      — always visible (needed for sign-in)
+--   Admin        — sees every profile
+--   CEO          — sees every profile EXCEPT Admin rows
+--   Sales/Trainer— sees only their own row
+--
+-- The app never reads `profiles` except for the current user and the
+-- Team Access screen, so this is safe to tighten. Depends on 0001 + 0002.
+
+drop policy if exists profiles_self_read on public.profiles;
+drop policy if exists profiles_read on public.profiles;
+
+create policy profiles_read on public.profiles
+  for select
+  using (
+    id = auth.uid()
+    or public.current_role() = 'Admin'
+    or (public.current_role() = 'CEO' and role <> 'Admin')
+  );
 

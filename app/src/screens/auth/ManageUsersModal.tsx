@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAppStore } from '../../store/appStore'
 import { ROLE_BADGE } from '../../lib/styles'
+import { createTeamUser } from '../../lib/team'
 import type { Profile } from '../../lib/types'
 import type { Role } from '../../lib/constants'
 import Modal from '../../components/Modal'
@@ -13,11 +14,11 @@ interface Props {
   onClose: () => void
 }
 
-// Which roles the actor is allowed to assign to a given target row.
-function assignableRoles(actorRole: Role, targetRole: Role): Role[] {
+// Roles the actor may assign to an existing row / create.
+function assignableRoles(actorRole: Role, targetRole?: Role): Role[] {
   if (targetRole === 'Admin') return [] // Admin rows are immutable in-app
-  if (actorRole === 'Admin') return ['CEO', 'Sales', 'Trainer'] // Admin: everyone below Admin
-  if (actorRole === 'CEO') return targetRole === 'CEO' ? [] : ['Sales', 'Trainer'] // CEO: staff only
+  if (actorRole === 'Admin') return ['CEO', 'Sales', 'Trainer']
+  if (actorRole === 'CEO') return targetRole === 'CEO' ? [] : ['Sales', 'Trainer']
   return []
 }
 
@@ -34,7 +35,11 @@ export default function ManageUsersModal({ me, onClose }: Props) {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
 
-  useEffect(() => {
+  const createRoles = assignableRoles(me.role)
+  const [draft, setDraft] = useState({ name: '', email: '', password: '', role: createRoles[0] ?? 'Sales' })
+  const [creating, setCreating] = useState(false)
+
+  function load() {
     supabase
       .from('profiles')
       .select('*')
@@ -43,7 +48,8 @@ export default function ManageUsersModal({ me, onClose }: Props) {
         setRows((data as Profile[]) ?? [])
         setLoading(false)
       })
-  }, [])
+  }
+  useEffect(load, [])
 
   async function setRole(p: Profile, role: Role) {
     setBusy(p.id)
@@ -63,16 +69,29 @@ export default function ManageUsersModal({ me, onClose }: Props) {
     showToast(p.active ? 'Access paused' : 'Access restored')
   }
 
+  async function create() {
+    if (!draft.name.trim() || !draft.email.trim() || draft.password.length < 8) {
+      return showToast('Name, email, and an 8+ char password are required')
+    }
+    setCreating(true)
+    const res = await createTeamUser({
+      name: draft.name.trim(),
+      email: draft.email.trim(),
+      password: draft.password,
+      role: draft.role as Role,
+    })
+    setCreating(false)
+    if (!res.ok) return showToast(res.error)
+    showToast(`${draft.name} added as ${draft.role}`)
+    setDraft({ name: '', email: '', password: '', role: createRoles[0] ?? 'Sales' })
+    setTimeout(load, 400) // give the trigger a beat to write the profile
+  }
+
   const grid = '1.3fr 1.7fr 1fr .8fr'
 
   return (
-    <Modal
-      title="Team access"
-      subtitle="Admin can manage CEO and staff. CEO can manage Sales & Trainer. Admin accounts are managed in Supabase. New logins are created in Supabase → Authentication."
-      onClose={onClose}
-      width={640}
-    >
-      <div style={{ border: '1px solid var(--border-2)', borderRadius: 12, overflow: 'hidden' }}>
+    <Modal title="Team access" onClose={onClose} width={640}>
+      <div style={{ border: '1px solid var(--border-2)', borderRadius: 12, overflow: 'hidden', marginBottom: 22 }}>
         <div
           style={{
             display: 'grid',
@@ -131,7 +150,6 @@ export default function ManageUsersModal({ me, onClose }: Props) {
                     onChange={(e) => setRole(u, e.target.value as Role)}
                     style={{ padding: '6px 8px', fontSize: 12, width: 'auto' }}
                   >
-                    {/* keep the current role visible even if it's not otherwise assignable */}
                     {[...new Set<Role>([u.role, ...roleOpts])].map((r) => (
                       <option key={r} value={r}>
                         {r}
@@ -169,6 +187,38 @@ export default function ManageUsersModal({ me, onClose }: Props) {
           )
         })}
       </div>
+
+      {/* Create login */}
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, textTransform: 'uppercase', color: 'var(--muted-4)', marginBottom: 10 }}>
+        Create a login
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+        <div>
+          <label className="ml-label">Full name</label>
+          <input className="ml-input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Jane Doe" />
+        </div>
+        <div>
+          <label className="ml-label">Email</label>
+          <input className="ml-input" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} placeholder="jane@medilink360.com" />
+        </div>
+        <div>
+          <label className="ml-label">Temporary password</label>
+          <input className="ml-input" value={draft.password} onChange={(e) => setDraft({ ...draft, password: e.target.value })} placeholder="8+ characters" />
+        </div>
+        <div>
+          <label className="ml-label">Role</label>
+          <select className="ml-select" value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value as Role })}>
+            {createRoles.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <button className="ml-btn" onClick={create} disabled={creating} style={{ width: '100%', padding: 11 }}>
+        {creating ? 'Creating…' : 'Create login'}
+      </button>
     </Modal>
   )
 }
