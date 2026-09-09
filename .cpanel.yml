@@ -1,14 +1,11 @@
 ---
 # Spaceship cPanel "Git Version Control" deploy hook.
 # cPanel clones this repo and runs these tasks on "Deploy HEAD Commit".
-# It does NOT run `npm build` — the built app/dist/ must be committed on the
-# branch cPanel tracks (see README.md > Deploy).
-#
-# EDIT THIS: set DEPLOYPATH to the document root of the crm.medilink360.ai
-# subdomain (cPanel > Domains shows it, e.g. /home/USER/crm.medilink360.ai).
+# It does NOT run `npm build` — the built app/dist/ is committed on the
+# `release` branch (which cPanel tracks). See README.md > Deploy.
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/CPANEL_USER/crm.medilink360.ai
+    - export DEPLOYPATH=/home/wukxvrqncc/crm.medilink360.ai
     - /bin/mkdir -p "$DEPLOYPATH"
     - /bin/rm -rf "$DEPLOYPATH"/assets
     - /bin/cp -R app/dist/. "$DEPLOYPATH"/
