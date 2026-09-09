@@ -669,6 +669,12 @@ declare
   role_or_active_changed boolean :=
     (new.role is distinct from old.role) or (new.active is distinct from old.active);
 begin
+  -- 0. The Supabase dashboard / service-role key (no auth.uid()) bypasses
+  --    every guard — that's how Admins are created and managed.
+  if auth.uid() is null then
+    return new;
+  end if;
+
   -- 1. An Admin row is untouchable from the app.
   if old.role = 'Admin' then
     if new.role  is distinct from old.role
@@ -712,6 +718,9 @@ as $$
 declare
   actor text := (select role from public.profiles where id = auth.uid());
 begin
+  if auth.uid() is null then
+    return old; -- dashboard / service role bypasses
+  end if;
   if old.role = 'Admin' then
     raise exception 'Admin accounts can only be removed in Supabase';
   end if;
