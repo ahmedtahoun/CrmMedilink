@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useIsMobile } from '../lib/useIsMobile'
 import type { CalendarEvent, Clinic } from '../lib/types'
 import { CAL_EVENT_TYPES, CAL_PRIORITIES, type MarketKey } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
@@ -43,6 +44,12 @@ export default function Calendar() {
   const setCalView = useAppStore((s) => s.setCalView)
   const calSelectedDate = useAppStore((s) => s.calSelectedDate)
   const setCalSelectedDate = useAppStore((s) => s.setCalSelectedDate)
+  const isMobile = useIsMobile()
+
+  // The month grid is unusable at phone width — snap to the day agenda.
+  useEffect(() => {
+    if (isMobile && calView === 'month') setCalView('day')
+  }, [isMobile, calView, setCalView])
 
   const { events, reload } = useCalendarEvents(market)
   const { clinics } = useClinics(market)
@@ -132,17 +139,17 @@ export default function Calendar() {
   const dayEvents = (eventsByDate.get(calSelectedDate) ?? []).slice().sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''))
 
   return (
-    <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px' }}>
-      <div className="ml-card" style={{ padding: '20px 22px', animation: 'fadeIn .3s ease' }}>
+    <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '0 12px 20px' : '0 26px 24px' }}>
+      <div className="ml-card" style={{ padding: isMobile ? '14px 14px' : '20px 22px', animation: 'fadeIn .3s ease' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-          <h3 style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 17, margin: 0, color: 'var(--ink-2)' }}>
+          <h3 style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: isMobile ? 15 : 17, margin: 0, color: 'var(--ink-2)' }}>
             {calView === 'month' && `${MONTH_NAMES[cm - 1]} ${cy}`}
             {calView === 'week' && `Week of ${weekDays[0]}`}
             {calView === 'day' && new Date(calSelectedDate + 'T00:00:00').toDateString()}
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: 3, background: '#0c1920', padding: 4, borderRadius: 11 }}>
-              {(['day', 'week', 'month'] as const).map((v) => (
+              {(isMobile ? (['day', 'week'] as const) : (['day', 'week', 'month'] as const)).map((v) => (
                 <div
                   key={v}
                   onClick={() => setCalView(v)}
@@ -264,7 +271,8 @@ export default function Calendar() {
         )}
 
         {calView === 'week' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 8 }}>
+          <div style={{ overflowX: isMobile ? 'auto' : undefined }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 8, minWidth: isMobile ? 640 : undefined }}>
             {weekDays.map((d) => (
               <div key={d} style={{ border: `1.5px solid ${d === today ? 'var(--brand)' : '#eef1f3'}`, borderRadius: 11, padding: 8, background: '#fbfcfc', minHeight: 220, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -291,6 +299,7 @@ export default function Calendar() {
                 </div>
               </div>
             ))}
+          </div>
           </div>
         )}
 

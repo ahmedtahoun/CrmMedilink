@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
-import type { Profile } from '../lib/types'
+import type { Clinic, Profile } from '../lib/types'
 import { HEALTHCARE_TYPES, MARKETS } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
+import { useIsMobile } from '../lib/useIsMobile'
 import { useClinics } from '../lib/clinics'
 import { supabase } from '../lib/supabase'
 import { catStyle, priStyle, initials, repColor } from '../lib/styles'
@@ -23,6 +24,7 @@ interface Props {
 export default function Providers({ profile }: Props) {
   const market = useAppStore((s) => s.market)
   const showToast = useAppStore((s) => s.showToast)
+  const isMobile = useIsMobile()
   const { clinics, loading, error, reload } = useClinics(market)
 
   const [q, setQ] = useState('')
@@ -65,17 +67,19 @@ export default function Providers({ profile }: Props) {
 
   return (
     <>
-      <div style={{ padding: '20px 26px 0', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
+      <div style={{ padding: isMobile ? '14px 14px 0' : '20px 26px 0', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div>
-            <h1 style={{ margin: '0 0 4px', fontSize: 23, fontWeight: 700, letterSpacing: '-.6px', color: 'var(--ink)' }}>
+            <h1 style={{ margin: '0 0 4px', fontSize: isMobile ? 18 : 23, fontWeight: 700, letterSpacing: '-.6px', color: 'var(--ink)', paddingLeft: isMobile ? 44 : 0 }}>
               Healthcare Providers <span style={{ color: 'var(--brand)', fontWeight: 600 }}>— {marketLabel}</span>
             </h1>
-            <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: 0 }}>
-              Master database — referenced by Sales, Trainer, Subscriptions and Reporting
-            </p>
+            {!isMobile && (
+              <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: 0 }}>
+                Master database — referenced by Sales, Trainer, Subscriptions and Reporting
+              </p>
+            )}
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, width: isMobile ? '100%' : undefined }}>
             <ExportButton
               disabled={filtered.length === 0}
               onClick={() =>
@@ -110,19 +114,19 @@ export default function Providers({ profile }: Props) {
         </div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
-          <div style={{ flex: 1, minWidth: 200, position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: isMobile ? '100%' : 200, position: 'relative', display: 'flex', alignItems: 'center' }}>
             <span style={{ position: 'absolute', left: 13, color: '#93a1aa', display: 'flex' }}>
               <Icon name="search" size={16} strokeWidth={2} />
             </span>
             <input className="ml-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search provider, city, contact…" style={{ paddingLeft: 38, borderRadius: 11 }} />
           </div>
-          <select className="ml-select" value={typeF} onChange={(e) => setTypeF(e.target.value)} style={{ width: 'auto', borderRadius: 11, fontWeight: 600 }}>
+          <select className="ml-select" value={typeF} onChange={(e) => setTypeF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
             <option value="all">All types</option>
             {HEALTHCARE_TYPES.map((t) => (
               <option key={t}>{t}</option>
             ))}
           </select>
-          <select className="ml-select" value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ width: 'auto', borderRadius: 11, fontWeight: 600 }}>
+          <select className="ml-select" value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
             <option value="all">All statuses</option>
             <option value="active">Active</option>
             <option value="trial">Free Trial</option>
@@ -132,7 +136,17 @@ export default function Providers({ profile }: Props) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '0 14px 20px' : '0 26px 24px', display: 'flex', flexDirection: 'column' }}>
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {loading && <div className="ml-empty">Loading…</div>}
+            {error && <div className="ml-empty" style={{ color: 'var(--danger)' }}>{error}</div>}
+            {!loading && rows.map((c) => (
+              <ProviderCard key={c.id} c={c} onOpen={() => setDetailId(c.id)} onDelete={() => del(c.id, c.name)} />
+            ))}
+            {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '40px 0' }}>No providers match your filters</div>}
+          </div>
+        ) : (
         <div className="ml-card" style={{ overflow: 'hidden' }}>
           <div
             style={{
@@ -225,6 +239,7 @@ export default function Providers({ profile }: Props) {
 
           {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '48px 0' }}>No providers match your filters</div>}
         </div>
+        )}
 
         {filtered.length > PAGE_SIZE && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 4px 0', flexShrink: 0 }}>
@@ -264,5 +279,69 @@ export default function Providers({ profile }: Props) {
       )}
       {addOpen && <AddClinicModal asProvider onClose={() => setAddOpen(false)} />}
     </>
+  )
+}
+
+function ProviderCard({ c, onOpen, onDelete }: { c: Clinic; onOpen: () => void; onDelete: () => void }) {
+  return (
+    <div className="ml-card" onClick={onOpen} style={{ padding: '13px 14px', cursor: 'pointer' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            background: repColor(c.name),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: 12,
+            flexShrink: 0,
+          }}
+        >
+          {initials(c.name)}
+        </div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 14, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {c.name}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--muted)' }}>
+            {(c.healthcare_type ?? 'Clinic')} · {c.area || '—'}
+          </div>
+        </div>
+        <span
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete()
+          }}
+          style={{ fontSize: 11, fontWeight: 700, color: '#dc2626', flexShrink: 0 }}
+        >
+          Delete
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+        <Pill swatch={catStyle(c.cat)}>{c.cat}</Pill>
+        <Pill swatch={priStyle(c.pri)}>{c.pri}</Pill>
+        <Pill swatch={{ color: '#475569', bg: '#eef1f4' }}>{stageTitle('closer', c.cs)}</Pill>
+        <Pill
+          swatch={
+            c.sub_status === 'active'
+              ? { color: '#0e9b76', bg: '#e3f4ee' }
+              : c.sub_status === 'inactive'
+                ? { color: '#dc2626', bg: '#fdecec' }
+                : { color: '#b45309', bg: '#fbf1e0' }
+          }
+        >
+          {c.sub_status}
+        </Pill>
+      </div>
+      {(c.contact || c.phone) && (
+        <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 8 }}>
+          {[c.contact, c.phone].filter(Boolean).join(' · ')}
+        </div>
+      )}
+    </div>
   )
 }

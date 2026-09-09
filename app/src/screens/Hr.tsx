@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useIsMobile } from '../lib/useIsMobile'
 import type { Employee, Profile } from '../lib/types'
 import { COUNTRY_OPTIONS, HR_DEPARTMENTS } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
@@ -19,6 +20,7 @@ export default function Hr({ profile }: Props) {
   const showToast = useAppStore((s) => s.showToast)
   const { employees, loading, reload } = useEmployees()
   const canEdit = profile.role === 'CEO' || profile.role === 'Admin'
+  const isMobile = useIsMobile()
 
   const [q, setQ] = useState('')
   const [countryF, setCountryF] = useState('all')
@@ -87,18 +89,20 @@ export default function Hr({ profile }: Props) {
 
   return (
     <>
-      <div style={{ padding: '20px 26px 0', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
+      <div style={{ padding: isMobile ? '14px 14px 0' : '20px 26px 0', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div>
-            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 23, letterSpacing: '-.6px', margin: '0 0 4px', color: 'var(--ink)' }}>
+            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 18 : 23, letterSpacing: '-.6px', margin: '0 0 4px', color: 'var(--ink)', paddingLeft: isMobile ? 44 : 0 }}>
               Team Directory
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#b45309' }}>
-              <Icon name="lock" size={12} strokeWidth={0} stroke="none" style={{ fill: 'currentColor' }} />
-              CEO-only workspace — salary &amp; documents are private to this view
-            </div>
+            {!isMobile && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#b45309' }}>
+                <Icon name="lock" size={12} strokeWidth={0} stroke="none" style={{ fill: 'currentColor' }} />
+                CEO-only workspace — salary &amp; documents are private to this view
+              </div>
+            )}
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, width: isMobile ? '100%' : undefined }}>
             <ExportButton
               disabled={filtered.length === 0}
               onClick={() =>
@@ -134,41 +138,41 @@ export default function Hr({ profile }: Props) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '0 14px 20px' : '0 26px 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 16 }}>
           {kpis.map((k) => (
-            <div key={k.label} className="ml-card" style={{ borderRadius: 14, padding: '16px 18px' }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--muted-4)', marginBottom: 9 }}>{k.label}</div>
-              <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 27, color: 'var(--ink)' }}>{k.value}</span>
+            <div key={k.label} className="ml-card" style={{ borderRadius: 14, padding: isMobile ? '12px 12px' : '16px 18px' }}>
+              <div style={{ fontSize: isMobile ? 10 : 11.5, fontWeight: 700, color: 'var(--muted-4)', marginBottom: isMobile ? 5 : 9 }}>{k.label}</div>
+              <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 20 : 27, color: 'var(--ink)' }}>{k.value}</span>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 22 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 22 }}>
           <DistCard title="Employees by Country" data={dist('country', COUNTRY_OPTIONS)} color="linear-gradient(90deg,#17c08f,#0e9270)" />
           <DistCard title="Employees by Department" data={dist('department', HR_DEPARTMENTS)} color="linear-gradient(90deg,#4f46e5,#4338ca)" />
         </div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
-          <div style={{ flex: 1, minWidth: 200, position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: isMobile ? '100%' : 200, position: 'relative', display: 'flex', alignItems: 'center' }}>
             <span style={{ position: 'absolute', left: 13, color: '#93a1aa', display: 'flex' }}>
               <Icon name="search" size={16} strokeWidth={2} />
             </span>
             <input className="ml-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email, position…" style={{ paddingLeft: 38, borderRadius: 11 }} />
           </div>
-          <select className="ml-select" value={countryF} onChange={(e) => setCountryF(e.target.value)} style={{ width: 'auto', borderRadius: 11, fontWeight: 600 }}>
+          <select className="ml-select" value={countryF} onChange={(e) => setCountryF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
             <option value="all">All countries</option>
             {COUNTRY_OPTIONS.map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>
-          <select className="ml-select" value={deptF} onChange={(e) => setDeptF(e.target.value)} style={{ width: 'auto', borderRadius: 11, fontWeight: 600 }}>
+          <select className="ml-select" value={deptF} onChange={(e) => setDeptF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
             <option value="all">All departments</option>
             {HR_DEPARTMENTS.map((d) => (
               <option key={d}>{d}</option>
             ))}
           </select>
-          <select className="ml-select" value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ width: 'auto', borderRadius: 11, fontWeight: 600 }}>
+          <select className="ml-select" value={statusF} onChange={(e) => setStatusF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
             <option value="all">All statuses</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -176,6 +180,54 @@ export default function Hr({ profile }: Props) {
           </select>
         </div>
 
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {loading && <div className="ml-empty">Loading…</div>}
+            {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '40px 0' }}>No employees match your filters</div>}
+            {groups.map(([country, rows]) => (
+              <div key={country}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#0e6b52', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{country}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {rows.map((e) => (
+                    <div
+                      key={e.id}
+                      className="ml-card"
+                      onClick={() => canEdit && setModal({ editing: e })}
+                      style={{ padding: '12px 14px', opacity: e.status === 'active' ? 1 : 0.6 }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: repColor(e.name), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 12, flexShrink: 0 }}>
+                          {initials(e.name)}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.email}</div>
+                        </div>
+                        <Pill
+                          swatch={
+                            e.status === 'active'
+                              ? { color: '#15803d', bg: '#e7f5ec' }
+                              : e.status === 'inactive'
+                                ? { color: '#b45309', bg: '#fbf1e0' }
+                                : { color: '#475569', bg: '#eef1f4' }
+                          }
+                        >
+                          {e.status}
+                        </Pill>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 8, fontSize: 11.5, color: 'var(--muted)' }}>
+                        <span>{e.position || '—'}</span>
+                        <span>· {e.employment_type || '—'}</span>
+                        <span>· from {shortDay(e.start_date)}</span>
+                        {e.base_salary != null && <span>· {e.currency ?? ''} {e.base_salary}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="ml-card" style={{ overflow: 'hidden' }}>
           {loading && <div className="ml-empty">Loading…</div>}
           {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '48px 0' }}>No employees match your filters</div>}
@@ -291,6 +343,7 @@ export default function Hr({ profile }: Props) {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {modal && <HrModal editing={modal.editing} onClose={() => setModal(null)} onSaved={reload} />}

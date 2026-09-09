@@ -560,6 +560,8 @@ function TableView({
       )}
 
       <div className="ml-card" style={{ overflow: 'hidden', animation: 'fadeIn .3s ease' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <div style={{ minWidth: 680 }}>
         <div
           style={{
             display: 'grid',
@@ -633,6 +635,8 @@ function TableView({
           )
         })}
         {rows.length === 0 && <div className="ml-empty">No clinics match your filters</div>}
+        </div>
+        </div>
       </div>
     </div>
   )

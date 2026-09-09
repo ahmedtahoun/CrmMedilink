@@ -162,6 +162,8 @@ export default function CeoOverview({ profile }: Props) {
           <h3 style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 15, margin: '0 0 6px', color: 'var(--ink-2)' }}>
             Closer leaderboard · all markets
           </h3>
+          <div style={{ overflowX: 'auto' }}>
+          <div style={{ minWidth: 380 }}>
           <div
             style={{
               display: 'grid',
@@ -208,6 +210,8 @@ export default function CeoOverview({ profile }: Props) {
               <span style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{fmtMoney(l.mrr)}</span>
             </div>
           ))}
+          </div>
+          </div>
         </div>
       </div>
     </>

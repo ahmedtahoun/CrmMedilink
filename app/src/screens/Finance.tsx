@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Expense, Invoice, Profile, Quotation } from '../lib/types'
+import { useIsMobile } from '../lib/useIsMobile'
 import { MARKET_BY_KEY, MONTHS, type MarketKey } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { useClinics } from '../lib/clinics'
@@ -43,6 +44,7 @@ export default function Finance({ profile }: Props) {
   const tab = useAppStore((s) => s.financeTab)
   const setTab = useAppStore((s) => s.setFinanceTab)
   const showToast = useAppStore((s) => s.showToast)
+  const isMobile = useIsMobile()
   const cur = MARKET_BY_KEY[market].currency
 
   const { clinics } = useClinics(market)
@@ -126,18 +128,18 @@ export default function Finance({ profile }: Props) {
 
   return (
     <>
-      <div style={{ padding: '22px 26px 0', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18, flexWrap: 'wrap' }}>
+      <div style={{ padding: isMobile ? '14px 14px 0' : '22px 26px 0', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 0 }}>
-            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 23, letterSpacing: '-.6px', margin: 0, color: 'var(--ink)' }}>
+            <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 18 : 23, letterSpacing: '-.6px', margin: 0, color: 'var(--ink)', paddingLeft: isMobile ? 44 : 0 }}>
               Finance <span style={{ color: 'var(--brand)', fontWeight: 600 }}>— {MARKET_BY_KEY[market].label}</span>
             </h1>
-            <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '6px 0 0' }}>{subtitle[tab]}</p>
+            {!isMobile && <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '6px 0 0' }}>{subtitle[tab]}</p>}
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, width: isMobile ? '100%' : undefined }}>
             <ExportButton onClick={doExport} disabled={exportDisabled} />
             {tab !== 'revenue' && (
-              <button className="ml-btn" onClick={() => setModal({ kind: addKind[tab], editing: null })}>
+              <button className="ml-btn" onClick={() => setModal({ kind: addKind[tab], editing: null })} style={{ flex: isMobile ? 1 : undefined }}>
                 <Icon name="plus" size={15} strokeWidth={2.6} />
                 {addLabel[tab]}
               </button>
@@ -145,12 +147,14 @@ export default function Finance({ profile }: Props) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 4, background: 'var(--tab-track)', padding: 4, borderRadius: 11, marginBottom: 20, width: 'fit-content' }}>
+        <div style={{ display: 'flex', gap: 4, background: 'var(--tab-track)', padding: 4, borderRadius: 11, marginBottom: 20, width: isMobile ? '100%' : 'fit-content', overflowX: 'auto' }}>
           {tabs.map((t) => (
             <div
               key={t.key}
               onClick={() => setTab(t.key)}
               style={{
+                flex: isMobile ? 1 : undefined,
+                textAlign: 'center',
                 padding: '8px 15px',
                 borderRadius: 8,
                 fontWeight: 700,
@@ -167,7 +171,7 @@ export default function Finance({ profile }: Props) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 30px' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '0 14px 24px' : '0 26px 30px' }}>
         {tab === 'revenue' && (
           <>
             <MarketSummary
@@ -410,7 +414,8 @@ function DocTab({
     <>
       <KpiRow kpis={kpis} />
       <div className="ml-card" style={{ borderRadius: 14, overflow: 'hidden' }}>
-        <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 12.5 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 540, fontSize: 12.5 }}>
           <thead>
             <tr style={{ background: 'var(--surface-alt-2)' }}>
               <th style={th}>{kind === 'invoice' ? 'Invoice #' : 'Quote #'}</th>
@@ -456,6 +461,7 @@ function DocTab({
             ))}
           </tbody>
         </table>
+        </div>
         {rows.length === 0 && <div className="ml-empty" style={{ padding: 26 }}>{emptyText}</div>}
       </div>
     </>
@@ -487,7 +493,8 @@ function ExpensesTab({
         ]}
       />
       <div className="ml-card" style={{ borderRadius: 14, overflow: 'hidden' }}>
-        <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 12.5 }}>
+        <div style={{ overflowX: 'auto' }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 540, fontSize: 12.5 }}>
           <thead>
             <tr style={{ background: 'var(--surface-alt-2)' }}>
               <th style={th}>Description</th>
@@ -518,6 +525,7 @@ function ExpensesTab({
             ))}
           </tbody>
         </table>
+        </div>
         {rows.length === 0 && <div className="ml-empty" style={{ padding: 26 }}>No expenses logged yet.</div>}
       </div>
     </>

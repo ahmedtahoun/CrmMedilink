@@ -196,10 +196,21 @@ a { color: inherit; }
     max-width: 96%;
     max-height: 92vh;
   }
-  /* stack two-column form grids inside modals */
-  .ml-modal [style*='1fr 1fr'],
-  .ml-modal [style*='2fr 1fr'],
-  .ml-modal [style*='1fr 1fr 1fr'] {
+
+  /* Stack the common page-level multi-column grids on phones. Anchored to the
+     property name; leaderboard-style "2fr 1fr 1fr 1.2fr" row grids are left
+     alone (handled per-screen with an overflow-x scroll instead). */
+  [style*='grid-template-columns: 1fr 1fr'],
+  [style*='grid-template-columns: 1.15fr 1fr'],
+  [style*='grid-template-columns: 1.3fr 1fr'],
+  [style*='grid-template-columns: 1.5fr 1fr'],
+  [style*='grid-template-columns: repeat(3,1fr)'],
+  [style*='grid-template-columns: repeat(4,1fr)'] {
+    grid-template-columns: 1fr !important;
+  }
+  /* modal forms: also stack the 2fr/1fr and 3-up rows */
+  .ml-modal [style*='grid-template-columns: 2fr 1fr'],
+  .ml-modal [style*='grid-template-columns: 1fr 1fr 1fr'] {
     grid-template-columns: 1fr !important;
   }
 }

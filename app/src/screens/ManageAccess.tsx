@@ -60,10 +60,12 @@ export default function ManageAccess({ profile, matrix, onChange }: Props) {
           </div>
         ) : (
           <div className="ml-card" style={{ overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: `1.6fr repeat(${ACCESS_ROLE_KEYS.length + 2}, 1fr)`,
+                gridTemplateColumns: `minmax(140px,1.6fr) repeat(${ACCESS_ROLE_KEYS.length + 2}, minmax(72px,1fr))`,
+                minWidth: 560,
               }}
             >
               <HeadCell>Module</HeadCell>
@@ -85,6 +87,7 @@ export default function ManageAccess({ profile, matrix, onChange }: Props) {
                   <LockedCell />
                 </Row>
               ))}
+            </div>
             </div>
           </div>
         )}
