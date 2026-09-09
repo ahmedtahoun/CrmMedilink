@@ -1,7 +1,3 @@
-# === release branch ===
-# This branch holds ONLY the built static site at repo root, cloned straight
-# into the crm.medilink360.ai web root by cPanel Git Version Control.
-# Everything else (source, tooling, node_modules) lives on `main`.
 /app/
 /design_handoff_medilink360/
 /.claude/
