@@ -23,6 +23,8 @@ const CREATABLE: Record<string, Role[]> = {
   CEO: ['Sales', 'Trainer'],
 }
 
+const MARKETS = ['egypt', 'dubai', 'ksa', 'qatar']
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -57,7 +59,7 @@ Deno.serve(async (req) => {
   }
 
   // 2. validate the request
-  let body: { name?: string; email?: string; password?: string; role?: string }
+  let body: { name?: string; email?: string; password?: string; role?: string; market?: string }
   try {
     body = await req.json()
   } catch {
@@ -67,12 +69,16 @@ Deno.serve(async (req) => {
   const email = (body.email ?? '').trim().toLowerCase()
   const password = body.password ?? ''
   const role = body.role as Role
+  // Market only applies to Sales / Trainer; ignored (cleared) for CEO / Admin.
+  const rawMarket = (body.market ?? '').trim()
+  const market = rawMarket && (role === 'Sales' || role === 'Trainer') ? rawMarket : null
 
   if (!name || !email || !password) return json({ error: 'Name, email and password are required' }, 400)
   if (password.length < 8) return json({ error: 'Password must be at least 8 characters' }, 400)
   if (!CREATABLE[callerRole].includes(role)) {
     return json({ error: `A ${callerRole} cannot create a ${role} login` }, 403)
   }
+  if (market && !MARKETS.includes(market)) return json({ error: 'Unknown market' }, 400)
 
   // 3. create the user — the handle_new_user trigger fills public.profiles
   const { data, error } = await admin.auth.admin.createUser({
@@ -88,5 +94,10 @@ Deno.serve(async (req) => {
     return json({ error: msg }, 400)
   }
 
-  return json({ id: data.user?.id, email, role })
+  // 4. pin the market (handle_new_user only copies name + role)
+  if (data.user && market) {
+    await admin.from('profiles').update({ market }).eq('id', data.user.id)
+  }
+
+  return json({ id: data.user?.id, email, role, market })
 })

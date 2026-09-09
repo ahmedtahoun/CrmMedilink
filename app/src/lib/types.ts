@@ -13,6 +13,8 @@ export interface Profile {
   email: string
   role: Role
   active: boolean
+  /** Sales / Trainer can be pinned to one market by a CEO/Admin. null = all markets. */
+  market: MarketKey | null
   created_at?: string
 }
 

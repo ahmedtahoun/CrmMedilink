@@ -1,4 +1,4 @@
-import { MARKETS, MARKET_LAUNCH, WORKSPACE_ITEMS, type Workspace } from '../lib/constants'
+import { MARKETS, MARKET_LAUNCH, WORKSPACE_ITEMS, type MarketKey, type Workspace } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { isCeoOrAdmin } from '../lib/auth'
 import type { Profile } from '../lib/types'
@@ -7,6 +7,7 @@ import Icon from './Icon'
 interface SidebarProps {
   profile: Profile
   visibleWorkspaces: Set<Workspace>
+  lockedMarket?: MarketKey | null
   onManageUsers: () => void
   onAddClinic: () => void
   onSignOut: () => void
@@ -15,12 +16,14 @@ interface SidebarProps {
 export default function Sidebar({
   profile,
   visibleWorkspaces,
+  lockedMarket,
   onManageUsers,
   onAddClinic,
   onSignOut,
 }: SidebarProps) {
   const { workspace, setWorkspace, market, setMarket, ceoPersona, toggleCeoPersona } = useAppStore()
   const isCeo = profile.role === 'CEO'
+  const marketList = lockedMarket ? MARKETS.filter((m) => m.key === lockedMarket) : MARKETS
 
   return (
     <aside
@@ -120,14 +123,16 @@ export default function Sidebar({
         )
       })}
 
-      <div style={{ ...sectionLabel, paddingTop: 24 }}>MARKET</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {MARKETS.map((m) => {
+      <div style={{ ...sectionLabel, paddingTop: 24 }}>
+        MARKET{lockedMarket && <span style={{ color: 'var(--sidebar-muted)', fontWeight: 600 }}> · assigned</span>}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: lockedMarket ? '1fr' : '1fr 1fr', gap: 8 }}>
+        {marketList.map((m) => {
           const active = market === m.key
           return (
             <div
               key={m.key}
-              onClick={() => setMarket(m.key)}
+              onClick={() => !lockedMarket && setMarket(m.key)}
               style={{
                 position: 'relative',
                 display: 'flex',
@@ -138,7 +143,7 @@ export default function Sidebar({
                 borderRadius: 11,
                 fontWeight: 700,
                 fontSize: 13.5,
-                cursor: 'pointer',
+                cursor: lockedMarket ? 'default' : 'pointer',
                 background: active ? 'rgba(23,192,143,.16)' : 'rgba(255,255,255,.04)',
                 color: active ? '#fff' : 'var(--sidebar-ink)',
                 border: `1px solid ${active ? 'rgba(23,192,143,.5)' : 'rgba(255,255,255,.09)'}`,

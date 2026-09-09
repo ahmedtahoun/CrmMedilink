@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppStore } from '../store/appStore'
 import { useAccessMatrix, visibleWorkspaces } from '../lib/access'
 import { signOut } from '../lib/auth'
@@ -25,9 +25,17 @@ export default function AppShell({ profile }: AppShellProps) {
   const workspace = useAppStore((s) => s.workspace)
   const setWorkspace = useAppStore((s) => s.setWorkspace)
   const ceoPersona = useAppStore((s) => s.ceoPersona)
+  const market = useAppStore((s) => s.market)
+  const setMarket = useAppStore((s) => s.setMarket)
   const { matrix, reload } = useAccessMatrix()
   const [manageUsers, setManageUsers] = useState(false)
   const [addClinic, setAddClinic] = useState(false)
+
+  // A Sales / Trainer login pinned to a market is locked to it everywhere.
+  const lockedMarket = profile.market ?? null
+  useEffect(() => {
+    if (lockedMarket && market !== lockedMarket) setMarket(lockedMarket)
+  }, [lockedMarket, market, setMarket])
 
   const effectiveRole = profile.role === 'CEO' && !ceoPersona ? 'Sales' : profile.role
   const visible = useMemo<Set<Workspace>>(
@@ -56,6 +64,7 @@ export default function AppShell({ profile }: AppShellProps) {
         <Sidebar
           profile={profile}
           visibleWorkspaces={visible}
+          lockedMarket={lockedMarket}
           onManageUsers={() => setManageUsers(true)}
           onAddClinic={() => setAddClinic(true)}
           onSignOut={signOut}

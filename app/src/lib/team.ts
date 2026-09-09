@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Role } from './constants'
+import type { MarketKey, Role } from './constants'
 
 // The Supabase Edge Function slug that creates auth users server-side.
 // (Deployed via the dashboard, which auto-slugged it "swift-handler".)
@@ -10,6 +10,8 @@ export interface NewTeamUser {
   email: string
   password: string
   role: Role
+  /** Only applied for Sales / Trainer; the server clears it for CEO / Admin. */
+  market?: MarketKey | null
 }
 
 /** Calls the create-user Edge Function (server-side service-role). */
