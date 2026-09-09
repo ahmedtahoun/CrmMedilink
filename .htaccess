@@ -1,7 +1,12 @@
 # MediLink360 SPA — Apache/LiteSpeed config for the crm.medilink360.ai docroot.
-# Vite copies this file into dist/ on build.
+# Vite copies this file into dist/ on build; the release branch is cloned
+# straight into the web root by cPanel Git Version Control.
 
 RewriteEngine On
+
+# Never serve the repo's git metadata or dotfiles (the web root is a git clone).
+RewriteRule (^|/)\.git - [F,L]
+RewriteRule (^|/)\.(cpanel\.yml|gitignore) - [F,L]
 
 # Force HTTPS
 RewriteCond %{HTTPS} off
