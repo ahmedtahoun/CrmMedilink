@@ -119,7 +119,7 @@ export default function CeoOverview({ profile }: Props) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 14, marginBottom: 20 }}>
           {marketStats.map((m) => (
             <div
               key={m.key}

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import Icon from '../../components/Icon'
 import { signIn, requestPasswordReset } from '../../lib/auth'
+import { useIsMobile } from '../../lib/useIsMobile'
 
 type Screen = 'login' | 'forgot' | 'sent'
 
 export default function AuthGate() {
+  const isMobile = useIsMobile()
   const [screen, setScreen] = useState<Screen>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,6 +27,171 @@ export default function AuthGate() {
     await requestPasswordReset(forgotEmail)
     setBusy(false)
     setScreen('sent')
+  }
+
+  const renderForm = () => (
+    <>
+      {screen === 'login' && (
+        <>
+          <h2 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 24, margin: '0 0 6px', color: '#12222b' }}>
+            Sign in
+          </h2>
+          <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 26px' }}>
+            Use the email and password issued to you.
+          </p>
+          <label className="ml-label">Email</label>
+          <input
+            className="ml-input"
+            type="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@medilink360.com"
+            style={{ marginBottom: 16 }}
+            onKeyDown={(e) => e.key === 'Enter' && onLogin()}
+          />
+          <label className="ml-label">Password</label>
+          <input
+            className="ml-input"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            style={{ marginBottom: 10 }}
+            onKeyDown={(e) => e.key === 'Enter' && onLogin()}
+          />
+          {error && <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--danger)', marginBottom: 14 }}>{error}</div>}
+          <div
+            onClick={() => setScreen('forgot')}
+            style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 700, color: 'var(--brand)', cursor: 'pointer', margin: '4px 0 22px' }}
+          >
+            Forgot password?
+          </div>
+          <button
+            className="ml-btn"
+            onClick={onLogin}
+            disabled={busy}
+            style={{ width: '100%', padding: 13, fontSize: 14.5, boxShadow: '0 10px 26px rgba(18,163,126,.32)' }}
+          >
+            {busy ? 'Signing in…' : 'Sign in'}
+          </button>
+        </>
+      )}
+
+      {screen === 'forgot' && (
+        <>
+          <h2 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 24, margin: '0 0 6px', color: '#12222b' }}>
+            Reset password
+          </h2>
+          <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 26px' }}>
+            Enter your email. Your CEO or admin will get a request to reset it for you.
+          </p>
+          <label className="ml-label">Email</label>
+          <input
+            className="ml-input"
+            type="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            value={forgotEmail}
+            onChange={(e) => setForgotEmail(e.target.value)}
+            placeholder="you@medilink360.com"
+            style={{ marginBottom: 20 }}
+          />
+          <button className="ml-btn" onClick={onSendReset} disabled={busy} style={{ width: '100%', padding: 13, marginBottom: 14 }}>
+            Send request
+          </button>
+          <div
+            onClick={() => setScreen('login')}
+            style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--muted-2)', cursor: 'pointer' }}
+          >
+            ← Back to sign in
+          </div>
+        </>
+      )}
+
+      {screen === 'sent' && (
+        <>
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              background: 'var(--ok-bg)',
+              color: 'var(--ok)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <Icon name="check" size={24} strokeWidth={2.4} />
+          </div>
+          <h2 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 22, margin: '0 0 8px', color: '#12222b' }}>
+            Request sent
+          </h2>
+          <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 26px' }}>
+            Your CEO or admin has been notified and will reset your password shortly.
+          </p>
+          <button className="ml-btn ml-btn--ghost" onClick={() => setScreen('login')} style={{ width: '100%', padding: 12 }}>
+            Back to sign in
+          </button>
+        </>
+      )}
+    </>
+  )
+
+  if (isMobile) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          overflow: 'auto',
+          background:
+            'radial-gradient(700px 380px at 80% -10%,rgba(18,163,126,.28),transparent 60%),linear-gradient(160deg,#0b1a1e 0%,#0d2723 55%,#0a181c 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <div style={{ padding: '32px 24px 20px', color: '#eaf3f0', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 11,
+              background: 'var(--logo-grad)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-head)',
+              fontWeight: 700,
+              fontSize: 20,
+              color: '#04201a',
+            }}
+          >
+            M
+          </div>
+          <div>
+            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 17 }}>MediLink360</div>
+            <div style={{ fontSize: 11.5, color: '#8fb3ab', fontWeight: 600 }}>Rollout Tracker</div>
+          </div>
+        </div>
+        <div
+          style={{
+            flex: 1,
+            background: '#f7f9f9',
+            borderRadius: '20px 20px 0 0',
+            padding: '32px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{ width: '100%', maxWidth: 380, margin: '0 auto' }}>{renderForm()}</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -126,120 +293,7 @@ export default function AuthGate() {
           background: '#f7f9f9',
         }}
       >
-        <div style={{ width: '100%', maxWidth: 360 }}>
-          {screen === 'login' && (
-            <>
-              <h2 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 24, margin: '0 0 6px', color: '#12222b' }}>
-                Sign in
-              </h2>
-              <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 26px' }}>
-                Use the email and password issued to you.
-              </p>
-              <label className="ml-label">Email</label>
-              <input
-                className="ml-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@medilink360.com"
-                style={{ marginBottom: 16 }}
-                onKeyDown={(e) => e.key === 'Enter' && onLogin()}
-              />
-              <label className="ml-label">Password</label>
-              <input
-                className="ml-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                style={{ marginBottom: 10 }}
-                onKeyDown={(e) => e.key === 'Enter' && onLogin()}
-              />
-              {error && (
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--danger)', marginBottom: 14 }}>{error}</div>
-              )}
-              <div
-                onClick={() => setScreen('forgot')}
-                style={{
-                  textAlign: 'right',
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  color: 'var(--brand)',
-                  cursor: 'pointer',
-                  margin: '4px 0 22px',
-                }}
-              >
-                Forgot password?
-              </div>
-              <button
-                className="ml-btn"
-                onClick={onLogin}
-                disabled={busy}
-                style={{ width: '100%', padding: 13, fontSize: 14.5, boxShadow: '0 10px 26px rgba(18,163,126,.32)' }}
-              >
-                {busy ? 'Signing in…' : 'Sign in'}
-              </button>
-            </>
-          )}
-
-          {screen === 'forgot' && (
-            <>
-              <h2 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 24, margin: '0 0 6px', color: '#12222b' }}>
-                Reset password
-              </h2>
-              <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 26px' }}>
-                Enter your email. Your CEO or admin will get a request to reset it for you.
-              </p>
-              <label className="ml-label">Email</label>
-              <input
-                className="ml-input"
-                type="email"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                placeholder="you@medilink360.com"
-                style={{ marginBottom: 20 }}
-              />
-              <button className="ml-btn" onClick={onSendReset} disabled={busy} style={{ width: '100%', padding: 13, marginBottom: 14 }}>
-                Send request
-              </button>
-              <div
-                onClick={() => setScreen('login')}
-                style={{ textAlign: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--muted-2)', cursor: 'pointer' }}
-              >
-                ← Back to sign in
-              </div>
-            </>
-          )}
-
-          {screen === 'sent' && (
-            <>
-              <div
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: '50%',
-                  background: 'var(--ok-bg)',
-                  color: 'var(--ok)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 20,
-                }}
-              >
-                <Icon name="check" size={24} strokeWidth={2.4} />
-              </div>
-              <h2 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 22, margin: '0 0 8px', color: '#12222b' }}>
-                Request sent
-              </h2>
-              <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 26px' }}>
-                Your CEO or admin has been notified and will reset your password shortly.
-              </p>
-              <button className="ml-btn ml-btn--ghost" onClick={() => setScreen('login')} style={{ width: '100%', padding: 12 }}>
-                Back to sign in
-              </button>
-            </>
-          )}
-        </div>
+        <div style={{ width: '100%', maxWidth: 360 }}>{renderForm()}</div>
       </div>
     </div>
   )

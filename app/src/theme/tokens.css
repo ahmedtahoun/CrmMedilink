@@ -184,10 +184,24 @@ a { color: inherit; }
   border-radius: var(--r-modal);
   padding: 26px 28px;
   width: 640px;
-  max-width: 92%;
+  max-width: 94%;
   max-height: 88vh;
   overflow: auto;
   animation: popIn 0.16s ease both;
+}
+
+@media (max-width: 640px) {
+  .ml-modal {
+    padding: 20px 16px;
+    max-width: 96%;
+    max-height: 92vh;
+  }
+  /* stack two-column form grids inside modals */
+  .ml-modal [style*='1fr 1fr'],
+  .ml-modal [style*='2fr 1fr'],
+  .ml-modal [style*='1fr 1fr 1fr'] {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .ml-empty {

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useIsMobile } from '../lib/useIsMobile'
 import {
   DndContext,
   DragOverlay,
@@ -45,6 +46,8 @@ interface Props {
 export default function PipelineBoard({ profile, boardType, onAddClinic }: Props) {
   const { market, view, setView, search, priority, category, sort, repFilter } = useAppStore()
   const showToast = useAppStore((s) => s.showToast)
+  const isMobile = useIsMobile()
+  const pad = isMobile ? '0 12px 20px' : '0 26px 24px'
   const selectedIds = useAppStore((s) => s.selectedIds)
   const toggleSelected = useAppStore((s) => s.toggleSelected)
   const clearSelection = useAppStore((s) => s.clearSelection)
@@ -147,20 +150,20 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
       {view === 'calendar' && <Calendar />}
 
       {view === 'analytics' && (
-        <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: pad }}>
           {loading && <div className="ml-empty">Loading clinics…</div>}
           {!loading && <PipelineAnalytics clinics={clinics} board={boardType} />}
         </div>
       )}
 
       {view !== 'calendar' && view !== 'analytics' && (
-      <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 24px' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: pad }}>
         {loading && <div className="ml-empty">Loading clinics…</div>}
         {error && <div className="ml-empty" style={{ color: 'var(--danger)' }}>{error}</div>}
 
         {!loading && !error && view !== 'table' && (
           <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-            <div style={{ display: 'flex', gap: 15, alignItems: 'flex-start', paddingBottom: 8 }}>
+            <div style={{ display: 'flex', gap: isMobile ? 10 : 15, alignItems: 'flex-start', paddingBottom: 8 }}>
               {columns.map((col) => (
                 <BoardColumn
                   key={col.key}
@@ -254,10 +257,12 @@ function BoardColumn({
   children: React.ReactNode
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: colKey })
+  const isMobile = useIsMobile()
   return (
     <div
       style={{
-        width: 290,
+        width: isMobile ? '82vw' : 290,
+        maxWidth: 340,
         flexShrink: 0,
         background: isOver ? '#dfe6e3' : '#e6eaed',
         borderRadius: 16,
