@@ -128,6 +128,7 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                     ['Trainer', (c) => c.trainer],
                     ['Area', (c) => c.area],
                     ['Contact', (c) => c.contact],
+                    ['Position', (c) => c.contact_position],
                     ['Phone', (c) => c.phone],
                     ['MRR', (c) => c.mrr],
                     ['Subscription', (c) => c.sub_status],

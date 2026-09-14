@@ -7,6 +7,7 @@ import { useClinics, updateClinic } from '../lib/clinics'
 import { supabase } from '../lib/supabase'
 import { catStyle, priStyle, initials, repColor } from '../lib/styles'
 import { stageTitle } from '../lib/pipeline'
+import { contactLabel } from '../lib/format'
 import Pill from '../components/Pill'
 import Icon from '../components/Icon'
 import ExportButton from '../components/ExportButton'
@@ -100,6 +101,7 @@ export default function Providers({ profile }: Props) {
                     ['Priority', (c) => c.pri],
                     ['Area', (c) => c.area],
                     ['Contact', (c) => c.contact],
+                    ['Position', (c) => c.contact_position],
                     ['Phone', (c) => c.phone],
                     ['Email', (c) => c.email],
                     ['Sales stage', (c) => stageTitle('closer', c.cs)],
@@ -245,7 +247,7 @@ export default function Providers({ profile }: Props) {
                 <Pill swatch={priStyle(c.pri)}>{c.pri}</Pill>
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ color: 'var(--text)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.contact || '—'}</div>
+                <div style={{ color: 'var(--text)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{contactLabel(c.contact, c.contact_position)}</div>
                 <div style={{ fontSize: 10.5, color: 'var(--muted-4)' }}>{c.phone || ''}</div>
               </div>
               <div>
@@ -364,7 +366,7 @@ function ProviderCard({ c, onOpen, onDelete }: { c: Clinic; onOpen: () => void; 
       </div>
       {(c.contact || c.phone) && (
         <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 8 }}>
-          {[c.contact, c.phone].filter(Boolean).join(' · ')}
+          {[c.contact ? contactLabel(c.contact, c.contact_position) : null, c.phone].filter(Boolean).join(' · ')}
         </div>
       )}
     </div>

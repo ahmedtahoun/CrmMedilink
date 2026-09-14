@@ -33,6 +33,7 @@ export default function AddClinicModal({ onClose, asProvider }: Props) {
     area: '',
     street: '',
     contact: '',
+    contact_position: '',
     phone: '',
     email: '',
     website: '',
@@ -68,6 +69,7 @@ export default function AddClinicModal({ onClose, asProvider }: Props) {
       area: f.area || null,
       street: f.street || null,
       contact: f.contact || null,
+      contact_position: f.contact_position || null,
       phone: f.phone || null,
       email: f.email || null,
       website: f.website || null,
@@ -124,6 +126,10 @@ export default function AddClinicModal({ onClose, asProvider }: Props) {
         <div>
           <label className="ml-label">Contact person</label>
           <input className="ml-input" value={f.contact} onChange={(e) => set('contact', e.target.value)} placeholder="Dr. …" />
+        </div>
+        <div>
+          <label className="ml-label">Position</label>
+          <input className="ml-input" value={f.contact_position} onChange={(e) => set('contact_position', e.target.value)} placeholder="e.g. Reception, Marketing, Owner" />
         </div>
         <div>
           <label className="ml-label">Phone</label>

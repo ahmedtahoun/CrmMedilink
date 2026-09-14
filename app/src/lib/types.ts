@@ -27,6 +27,8 @@ export interface Clinic {
   street: string | null
   maps_link: string | null
   contact: string | null
+  /** The contact person's role at the clinic, e.g. "Reception", "Marketing", "Owner". */
+  contact_position: string | null
   phone: string | null
   email: string | null
   website: string | null

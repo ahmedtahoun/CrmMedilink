@@ -1,5 +1,12 @@
 import { DEFAULT_FX, MARKET_BY_KEY, type MarketKey } from './constants'
 
+// "Dr. Doaa Abdelsabour / Reception" — contact name plus their role at the
+// clinic, when we have one.
+export const contactLabel = (contact: string | null, position: string | null): string => {
+  if (!contact) return '—'
+  return position ? `${contact} / ${position}` : contact
+}
+
 export const num = (v: unknown): number => {
   const n = Number(v)
   return Number.isFinite(n) ? n : 0

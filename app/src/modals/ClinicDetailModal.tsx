@@ -14,7 +14,7 @@ import {
   toggleTask,
 } from '../lib/clinics'
 import { catStyle, priStyle, stageColorFor } from '../lib/styles'
-import { shortDay } from '../lib/format'
+import { contactLabel, shortDay } from '../lib/format'
 import { riskFlags, stageTitle, type BoardType } from '../lib/pipeline'
 import {
   useClinicAttachments,
@@ -63,6 +63,9 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
   const [reason, setReason] = useState('')
   const [taskDraft, setTaskDraft] = useState('')
   const [session, setSession] = useState({ type: 'Reception Training', date: '', time: '', trainer: '', notes: '' })
+  const [editingDetails, setEditingDetails] = useState(false)
+  const [savingDetails, setSavingDetails] = useState(false)
+  const [detailsDraft, setDetailsDraft] = useState({ contact: '', contact_position: '', phone: '', email: '', area: '' })
 
   const canManageSub = profile.role === 'CEO' || profile.role === 'Admin'
   const isTrainerView = board === 'trainer'
@@ -97,6 +100,33 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
     if (!next) return
     if (board === 'closer') await patch({ cs: next.next as Clinic['cs'] }, `Moved to ${stageTitle('closer', next.next)}`)
     else await patch({ ts: next.next as Clinic['ts'] }, `Moved to ${stageTitle('trainer', next.next)}`)
+  }
+
+  function startEditDetails() {
+    if (!clinic) return
+    setDetailsDraft({
+      contact: clinic.contact ?? '',
+      contact_position: clinic.contact_position ?? '',
+      phone: clinic.phone ?? '',
+      email: clinic.email ?? '',
+      area: clinic.area ?? '',
+    })
+    setEditingDetails(true)
+  }
+
+  async function saveDetails() {
+    setSavingDetails(true)
+    const err = await updateClinic(clinicId, {
+      contact: detailsDraft.contact.trim() || null,
+      contact_position: detailsDraft.contact_position.trim() || null,
+      phone: detailsDraft.phone.trim() || null,
+      email: detailsDraft.email.trim() || null,
+      area: detailsDraft.area.trim() || null,
+    })
+    setSavingDetails(false)
+    if (err) return showToast(err)
+    setEditingDetails(false)
+    showToast('Lead details updated')
   }
 
   async function postComment() {
@@ -273,21 +303,79 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                 )}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 22px', marginBottom: 22 }}>
-                <Field label="Contact" value={clinic.contact} />
-                <Field label="Phone" value={clinic.phone} />
-                <Field label="Area" value={clinic.area} />
-                <div>
-                  <div style={labelSm}>Closer / Trainer</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                    {clinic.closer && <Avatar name={clinic.closer} size={22} />}
-                    {clinic.trainer && <Avatar name={clinic.trainer} size={22} />}
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
-                      {[clinic.closer, clinic.trainer].filter(Boolean).join(' · ') || '—'}
-                    </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={labelSm}>Lead details</div>
+                {!editingDetails && (
+                  <span onClick={startEditDetails} style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', cursor: 'pointer' }}>
+                    Edit
+                  </span>
+                )}
+              </div>
+
+              {editingDetails ? (
+                <div style={{ marginBottom: 22 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                    <div>
+                      <label className="ml-label">Contact</label>
+                      <input
+                        className="ml-input"
+                        value={detailsDraft.contact}
+                        onChange={(e) => setDetailsDraft((d) => ({ ...d, contact: e.target.value }))}
+                        placeholder="Dr. …"
+                      />
+                    </div>
+                    <div>
+                      <label className="ml-label">Position</label>
+                      <input
+                        className="ml-input"
+                        value={detailsDraft.contact_position}
+                        onChange={(e) => setDetailsDraft((d) => ({ ...d, contact_position: e.target.value }))}
+                        placeholder="e.g. Reception, Marketing, Owner"
+                      />
+                    </div>
+                    <div>
+                      <label className="ml-label">Phone</label>
+                      <input className="ml-input" value={detailsDraft.phone} onChange={(e) => setDetailsDraft((d) => ({ ...d, phone: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="ml-label">Email</label>
+                      <input className="ml-input" value={detailsDraft.email} onChange={(e) => setDetailsDraft((d) => ({ ...d, email: e.target.value }))} />
+                    </div>
+                    <div style={{ gridColumn: '1/-1' }}>
+                      <label className="ml-label">Area</label>
+                      <input className="ml-input" value={detailsDraft.area} onChange={(e) => setDetailsDraft((d) => ({ ...d, area: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                    <div
+                      onClick={() => setEditingDetails(false)}
+                      style={{ padding: '9px 16px', borderRadius: 9, fontWeight: 700, fontSize: 13, cursor: 'pointer', color: 'var(--muted-2)', background: 'var(--tab-track-2)' }}
+                    >
+                      Cancel
+                    </div>
+                    <button className="ml-btn" onClick={saveDetails} disabled={savingDetails} style={{ fontSize: 13 }}>
+                      {savingDetails ? 'Saving…' : 'Save'}
+                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 22px', marginBottom: 22 }}>
+                  <Field label="Contact" value={contactLabel(clinic.contact, clinic.contact_position)} />
+                  <Field label="Phone" value={clinic.phone} />
+                  <Field label="Email" value={clinic.email} />
+                  <Field label="Area" value={clinic.area} />
+                  <div>
+                    <div style={labelSm}>Closer / Trainer</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                      {clinic.closer && <Avatar name={clinic.closer} size={22} />}
+                      {clinic.trainer && <Avatar name={clinic.trainer} size={22} />}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+                        {[clinic.closer, clinic.trainer].filter(Boolean).join(' · ') || '—'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div style={{ marginBottom: 22 }}>
                 <div style={{ ...labelSm, marginBottom: 10 }}>Sales journey</div>
