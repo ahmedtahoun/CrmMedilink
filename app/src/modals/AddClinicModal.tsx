@@ -11,41 +11,46 @@ import {
 } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { useEmployees } from '../lib/employees'
-import { createClinic } from '../lib/clinics'
+import { createClinic, updateClinic } from '../lib/clinics'
+import type { Clinic } from '../lib/types'
 import Modal from '../components/Modal'
 
 interface Props {
   onClose: () => void
   asProvider?: boolean
+  /** Pass an existing clinic to edit it instead of creating a new one. */
+  editing?: Clinic | null
 }
 
-export default function AddClinicModal({ onClose, asProvider }: Props) {
+export default function AddClinicModal({ onClose, asProvider, editing }: Props) {
   const market = useAppStore((s) => s.market)
   const showToast = useAppStore((s) => s.showToast)
   const { employees } = useEmployees()
   const [saving, setSaving] = useState(false)
-  const [showMore, setShowMore] = useState(false)
+  const [showMore, setShowMore] = useState(
+    () => !!editing && !!(editing.healthcare_type || editing.business_type || editing.segment || editing.current_system || editing.medical_cats?.length),
+  )
 
   const [f, setF] = useState({
-    name: '',
-    cat: 'General',
-    pri: 'Medium',
-    area: '',
-    street: '',
-    contact: '',
-    contact_position: '',
-    phone: '',
-    email: '',
-    website: '',
-    healthcare_type: '',
-    business_type: '',
-    segment: '',
-    ownership: '',
-    chain_name: '',
-    current_system: '',
-    closer: '',
-    trainer: '',
-    medical_cats: [] as string[],
+    name: editing?.name ?? '',
+    cat: editing?.cat ?? 'General',
+    pri: editing?.pri ?? 'Medium',
+    area: editing?.area ?? '',
+    street: editing?.street ?? '',
+    contact: editing?.contact ?? '',
+    contact_position: editing?.contact_position ?? '',
+    phone: editing?.phone ?? '',
+    email: editing?.email ?? '',
+    website: editing?.website ?? '',
+    healthcare_type: editing?.healthcare_type ?? '',
+    business_type: editing?.business_type ?? '',
+    segment: editing?.segment ?? '',
+    ownership: editing?.ownership ?? '',
+    chain_name: editing?.chain_name ?? '',
+    current_system: editing?.current_system ?? '',
+    closer: editing?.closer ?? '',
+    trainer: editing?.trainer ?? '',
+    medical_cats: editing?.medical_cats ?? ([] as string[]),
   })
   const set = (k: keyof typeof f, v: string | string[]) => setF((p) => ({ ...p, [k]: v }))
 
@@ -62,7 +67,7 @@ export default function AddClinicModal({ onClose, asProvider }: Props) {
   async function save() {
     if (!f.name.trim()) return showToast('Clinic name is required')
     setSaving(true)
-    const { error } = await createClinic({
+    const shared = {
       name: f.name.trim(),
       cat: f.cat,
       pri: f.pri as 'High' | 'Medium' | 'Low',
@@ -82,6 +87,19 @@ export default function AddClinicModal({ onClose, asProvider }: Props) {
       closer: f.closer || null,
       trainer: f.trainer || null,
       medical_cats: f.medical_cats,
+    }
+
+    if (editing) {
+      const err = await updateClinic(editing.id, shared)
+      setSaving(false)
+      if (err) return showToast(err)
+      showToast('Lead updated')
+      onClose()
+      return
+    }
+
+    const { error } = await createClinic({
+      ...shared,
       market,
       cs: 'lead',
       is_provider: !!asProvider,
@@ -97,7 +115,7 @@ export default function AddClinicModal({ onClose, asProvider }: Props) {
     set('medical_cats', f.medical_cats.includes(c) ? f.medical_cats.filter((x) => x !== c) : [...f.medical_cats, c])
 
   return (
-    <Modal title={asProvider ? 'Add provider' : 'Add clinic'} onClose={onClose}>
+    <Modal title={editing ? 'Edit lead' : asProvider ? 'Add provider' : 'Add clinic'} onClose={onClose}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div style={{ gridColumn: '1/-1' }}>
           <label className="ml-label">Clinic name *</label>
@@ -230,7 +248,7 @@ export default function AddClinicModal({ onClose, asProvider }: Props) {
       )}
 
       <button className="ml-btn" onClick={save} disabled={saving} style={{ width: '100%', marginTop: 18, padding: 12 }}>
-        {saving ? 'Saving…' : asProvider ? 'Add provider' : 'Add to pipeline'}
+        {saving ? 'Saving…' : editing ? 'Save changes' : asProvider ? 'Add provider' : 'Add to pipeline'}
       </button>
     </Modal>
   )

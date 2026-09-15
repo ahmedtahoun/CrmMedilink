@@ -229,6 +229,11 @@ export async function addComment(
   return error ? error.message : null
 }
 
+export async function updateComment(id: string, text: string): Promise<string | null> {
+  const { error } = await supabase.from('clinic_comments').update({ text }).eq('id', id)
+  return error ? error.message : null
+}
+
 export async function addSession(input: Partial<TrainingSession> & { clinic_id: string }): Promise<string | null> {
   const { error } = await supabase.from('training_sessions').insert(input)
   return error ? error.message : null

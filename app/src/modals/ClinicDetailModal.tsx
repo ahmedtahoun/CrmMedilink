@@ -8,6 +8,7 @@ import {
   useClinicDetail,
   updateClinic,
   addComment,
+  updateComment,
   addSession,
   updateSession,
   addTask,
@@ -24,6 +25,7 @@ import {
 } from '../lib/attachments'
 import Avatar from '../components/Avatar'
 import Pill from '../components/Pill'
+import AddClinicModal from './AddClinicModal'
 
 interface Props {
   clinicId: string
@@ -63,9 +65,9 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
   const [reason, setReason] = useState('')
   const [taskDraft, setTaskDraft] = useState('')
   const [session, setSession] = useState({ type: 'Reception Training', date: '', time: '', trainer: '', notes: '' })
-  const [editingDetails, setEditingDetails] = useState(false)
-  const [savingDetails, setSavingDetails] = useState(false)
-  const [detailsDraft, setDetailsDraft] = useState({ contact: '', contact_position: '', phone: '', email: '', area: '' })
+  const [editingLead, setEditingLead] = useState(false)
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editCommentDraft, setEditCommentDraft] = useState('')
 
   const canManageSub = profile.role === 'CEO' || profile.role === 'Admin'
   const isTrainerView = board === 'trainer'
@@ -102,38 +104,25 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
     else await patch({ ts: next.next as Clinic['ts'] }, `Moved to ${stageTitle('trainer', next.next)}`)
   }
 
-  function startEditDetails() {
-    if (!clinic) return
-    setDetailsDraft({
-      contact: clinic.contact ?? '',
-      contact_position: clinic.contact_position ?? '',
-      phone: clinic.phone ?? '',
-      email: clinic.email ?? '',
-      area: clinic.area ?? '',
-    })
-    setEditingDetails(true)
-  }
-
-  async function saveDetails() {
-    setSavingDetails(true)
-    const err = await updateClinic(clinicId, {
-      contact: detailsDraft.contact.trim() || null,
-      contact_position: detailsDraft.contact_position.trim() || null,
-      phone: detailsDraft.phone.trim() || null,
-      email: detailsDraft.email.trim() || null,
-      area: detailsDraft.area.trim() || null,
-    })
-    setSavingDetails(false)
-    if (err) return showToast(err)
-    setEditingDetails(false)
-    showToast('Lead details updated')
-  }
-
   async function postComment() {
     if (!commentDraft.trim()) return
     const err = await addComment(clinicId, profile.name, profile.id, commentDraft.trim(), commentType)
     if (err) return showToast(err)
     setCommentDraft('')
+    reload()
+  }
+
+  function startEditComment(id: string, text: string) {
+    setEditingCommentId(id)
+    setEditCommentDraft(text)
+  }
+
+  async function saveCommentEdit() {
+    if (!editingCommentId) return
+    if (!editCommentDraft.trim()) return showToast('Comment can’t be empty')
+    const err = await updateComment(editingCommentId, editCommentDraft.trim())
+    if (err) return showToast(err)
+    setEditingCommentId(null)
     reload()
   }
 
@@ -169,6 +158,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
   ]
 
   return (
+    <>
     <div
       className="ml-overlay"
       onClick={onClose}
@@ -305,77 +295,27 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={labelSm}>Lead details</div>
-                {!editingDetails && (
-                  <span onClick={startEditDetails} style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', cursor: 'pointer' }}>
-                    Edit
-                  </span>
-                )}
+                <span onClick={() => setEditingLead(true)} style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', cursor: 'pointer' }}>
+                  Edit
+                </span>
               </div>
 
-              {editingDetails ? (
-                <div style={{ marginBottom: 22 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                    <div>
-                      <label className="ml-label">Contact</label>
-                      <input
-                        className="ml-input"
-                        value={detailsDraft.contact}
-                        onChange={(e) => setDetailsDraft((d) => ({ ...d, contact: e.target.value }))}
-                        placeholder="Dr. …"
-                      />
-                    </div>
-                    <div>
-                      <label className="ml-label">Position</label>
-                      <input
-                        className="ml-input"
-                        value={detailsDraft.contact_position}
-                        onChange={(e) => setDetailsDraft((d) => ({ ...d, contact_position: e.target.value }))}
-                        placeholder="e.g. Reception, Marketing, Owner"
-                      />
-                    </div>
-                    <div>
-                      <label className="ml-label">Phone</label>
-                      <input className="ml-input" value={detailsDraft.phone} onChange={(e) => setDetailsDraft((d) => ({ ...d, phone: e.target.value }))} />
-                    </div>
-                    <div>
-                      <label className="ml-label">Email</label>
-                      <input className="ml-input" value={detailsDraft.email} onChange={(e) => setDetailsDraft((d) => ({ ...d, email: e.target.value }))} />
-                    </div>
-                    <div style={{ gridColumn: '1/-1' }}>
-                      <label className="ml-label">Area</label>
-                      <input className="ml-input" value={detailsDraft.area} onChange={(e) => setDetailsDraft((d) => ({ ...d, area: e.target.value }))} />
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                    <div
-                      onClick={() => setEditingDetails(false)}
-                      style={{ padding: '9px 16px', borderRadius: 9, fontWeight: 700, fontSize: 13, cursor: 'pointer', color: 'var(--muted-2)', background: 'var(--tab-track-2)' }}
-                    >
-                      Cancel
-                    </div>
-                    <button className="ml-btn" onClick={saveDetails} disabled={savingDetails} style={{ fontSize: 13 }}>
-                      {savingDetails ? 'Saving…' : 'Save'}
-                    </button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 22px', marginBottom: 22 }}>
+                <Field label="Contact" value={contactLabel(clinic.contact, clinic.contact_position)} />
+                <Field label="Phone" value={clinic.phone} />
+                <Field label="Email" value={clinic.email} />
+                <Field label="Area" value={clinic.area} />
+                <div>
+                  <div style={labelSm}>Closer / Trainer</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                    {clinic.closer && <Avatar name={clinic.closer} size={22} />}
+                    {clinic.trainer && <Avatar name={clinic.trainer} size={22} />}
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
+                      {[clinic.closer, clinic.trainer].filter(Boolean).join(' · ') || '—'}
+                    </span>
                   </div>
                 </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 22px', marginBottom: 22 }}>
-                  <Field label="Contact" value={contactLabel(clinic.contact, clinic.contact_position)} />
-                  <Field label="Phone" value={clinic.phone} />
-                  <Field label="Email" value={clinic.email} />
-                  <Field label="Area" value={clinic.area} />
-                  <div>
-                    <div style={labelSm}>Closer / Trainer</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                      {clinic.closer && <Avatar name={clinic.closer} size={22} />}
-                      {clinic.trainer && <Avatar name={clinic.trainer} size={22} />}
-                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)' }}>
-                        {[clinic.closer, clinic.trainer].filter(Boolean).join(' · ') || '—'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
 
               <div style={{ marginBottom: 22 }}>
                 <div style={{ ...labelSm, marginBottom: 10 }}>Sales journey</div>
@@ -487,12 +427,45 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                       No comments yet.
                     </div>
                   )}
-                  {comments.map((c) => (
-                    <div key={c.id} style={{ fontSize: 12.5, color: 'var(--text-2)', fontWeight: 600, padding: '5px 0 5px 14px', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 0, top: 9, width: 5, height: 5, borderRadius: '50%', background: '#0e9b76' }} />
-                      <strong>{c.author}</strong> · {shortDay(c.created_at)} — {c.text}
-                    </div>
-                  ))}
+                  {comments.map((c) => {
+                    const canEditComment = c.author_id === profile.id || profile.role === 'CEO' || profile.role === 'Admin'
+                    const isEditingThis = editingCommentId === c.id
+                    return (
+                      <div key={c.id} style={{ fontSize: 12.5, color: 'var(--text-2)', fontWeight: 600, padding: '5px 0 5px 14px', position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: 0, top: 9, width: 5, height: 5, borderRadius: '50%', background: '#0e9b76' }} />
+                        {isEditingThis ? (
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <input
+                              className="ml-input"
+                              value={editCommentDraft}
+                              onChange={(e) => setEditCommentDraft(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && saveCommentEdit()}
+                              style={{ fontSize: 12.5, padding: '6px 9px' }}
+                              autoFocus
+                            />
+                            <span onClick={saveCommentEdit} style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--brand)', cursor: 'pointer', flexShrink: 0 }}>
+                              Save
+                            </span>
+                            <span onClick={() => setEditingCommentId(null)} style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--muted)', cursor: 'pointer', flexShrink: 0 }}>
+                              Cancel
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <strong>{c.author}</strong> · {shortDay(c.created_at)} — {c.text}
+                            {canEditComment && (
+                              <span
+                                onClick={() => startEditComment(c.id, c.text)}
+                                style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: 'var(--brand)', cursor: 'pointer' }}
+                              >
+                                Edit
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
                 <div style={{ display: 'flex', gap: 7, marginBottom: 8 }}>
                   {['Note', 'Call', 'Visit'].map((t) => (
@@ -612,6 +585,8 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
         </div>
       </div>
     </div>
+    {editingLead && <AddClinicModal editing={clinic} onClose={() => setEditingLead(false)} />}
+    </>
   )
 }
 
