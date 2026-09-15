@@ -230,7 +230,7 @@ export async function addComment(
 }
 
 export async function updateComment(id: string, text: string): Promise<string | null> {
-  const { error } = await supabase.from('clinic_comments').update({ text }).eq('id', id)
+  const { error } = await supabase.from('clinic_comments').update({ text, edited: true }).eq('id', id)
   return error ? error.message : null
 }
 

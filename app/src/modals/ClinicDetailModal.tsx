@@ -51,6 +51,12 @@ const TRAINER_NEXT: Record<string, { label: string; next: string }> = {
   followup: { label: 'Mark Live', next: 'live' },
 }
 
+const COMMENT_TYPE_STYLE: Record<string, { color: string; bg: string }> = {
+  Note: { color: '#0e6b52', bg: '#e3f4ee' },
+  Call: { color: '#2563eb', bg: '#eff6ff' },
+  Visit: { color: '#b45309', bg: '#fbf1e0' },
+}
+
 export default function ClinicDetailModal({ clinicId, profile, board, onClose }: Props) {
   const market = useAppStore((s) => s.market)
   const showToast = useAppStore((s) => s.showToast)
@@ -452,7 +458,9 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                           </div>
                         ) : (
                           <>
-                            <strong>{c.author}</strong> · {shortDay(c.created_at)} — {c.text}
+                            <strong>{c.author}</strong> · {shortDay(c.created_at)} ·{' '}
+                            <Pill swatch={COMMENT_TYPE_STYLE[c.type] ?? COMMENT_TYPE_STYLE.Note}>{c.type}</Pill> — {c.text}
+                            {c.edited && <span style={{ color: 'var(--muted-4)', fontWeight: 700 }}> (edited)</span>}
                             {canEditComment && (
                               <span
                                 onClick={() => startEditComment(c.id, c.text)}

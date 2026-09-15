@@ -69,6 +69,7 @@ export interface ClinicComment {
   text: string
   type: string
   created_at: string
+  edited: boolean
 }
 
 export interface TrainingSession {
