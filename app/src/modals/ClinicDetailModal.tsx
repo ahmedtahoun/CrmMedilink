@@ -163,8 +163,13 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
     { key: 'files', label: 'Files' },
   ]
 
+  // Full edit form replaces this modal (rather than stacking on top of it) —
+  // it reappears with the fresh data as soon as the edit form closes.
+  if (editingLead) {
+    return <AddClinicModal editing={clinic} onClose={() => setEditingLead(false)} />
+  }
+
   return (
-    <>
     <div
       className="ml-overlay"
       onClick={onClose}
@@ -593,8 +598,6 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
         </div>
       </div>
     </div>
-    {editingLead && <AddClinicModal editing={clinic} onClose={() => setEditingLead(false)} />}
-    </>
   )
 }
 
