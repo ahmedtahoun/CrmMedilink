@@ -325,7 +325,10 @@ function ClinicCard({
   const st = stageColorFor(clinic.cs, clinic.ts)
   const cat = catStyle(clinic.cat)
   const pri = priStyle(clinic.pri)
-  const rep = board === 'closer' ? clinic.closer : clinic.trainer
+  // Show whoever's assigned, closer and trainer both, not just the field
+  // matching this board — a card shouldn't look "Unassigned" just because
+  // the other role hasn't been set yet.
+  const reps = [...new Set([clinic.closer, clinic.trainer].filter(Boolean) as string[])]
   const flags = riskFlags(clinic)
   const tdl = trialDaysLeft(clinic)
   const isLive = (clinic.cs === 'signed' || clinic.cs === 'commission') && clinic.ts === 'live'
@@ -394,7 +397,18 @@ function ClinicCard({
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 9 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          {rep && <Avatar name={rep} size={20} />}
+          {reps.length > 0 && (
+            <span style={{ display: 'flex', flexShrink: 0 }}>
+              {reps.map((name, i) => (
+                <span
+                  key={name}
+                  style={{ marginLeft: i > 0 ? -6 : 0, borderRadius: '50%', border: '2px solid #fff', display: 'flex' }}
+                >
+                  <Avatar name={name} size={20} />
+                </span>
+              ))}
+            </span>
+          )}
           <span
             style={{
               fontSize: 11.5,
@@ -405,7 +419,7 @@ function ClinicCard({
               whiteSpace: 'nowrap',
             }}
           >
-            {rep || 'Unassigned'}
+            {reps.length > 0 ? reps.join(' · ') : 'Unassigned'}
           </span>
         </span>
         <span
