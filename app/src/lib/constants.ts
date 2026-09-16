@@ -130,7 +130,7 @@ export type Workspace =
   | 'ceo' | 'providers' | 'closer' | 'trainer' | 'finance'
   | 'documents' | 'hr' | 'faq' | 'access' | 'activity'
 
-export const WORKSPACE_ITEMS: { key: Workspace; label: string; ceoOnly?: boolean }[] = [
+export const WORKSPACE_ITEMS: { key: Workspace; label: string; ceoOnly?: boolean; adminOnly?: boolean }[] = [
   { key: 'ceo', label: 'CEO Overview', ceoOnly: true },
   { key: 'providers', label: 'Leads' },
   { key: 'closer', label: 'Sales Closer' },
@@ -138,7 +138,8 @@ export const WORKSPACE_ITEMS: { key: Workspace; label: string; ceoOnly?: boolean
   { key: 'finance', label: 'Finance' },
   { key: 'documents', label: 'Documents' },
   { key: 'hr', label: 'HR', ceoOnly: true },
-  { key: 'activity', label: 'Activity', ceoOnly: true },
+  // Admin-only — not shown to CEO, unlike every other ceoOnly workspace.
+  { key: 'activity', label: 'Activity', adminOnly: true },
   { key: 'faq', label: 'FAQ' },
   { key: 'access', label: 'Manage Access', ceoOnly: true },
 ]

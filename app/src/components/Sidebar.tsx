@@ -100,7 +100,7 @@ export default function Sidebar({
               />
               {w.label}
             </span>
-            {w.ceoOnly && (
+            {w.adminOnly ? (
               <span
                 style={{
                   display: 'flex',
@@ -108,16 +108,36 @@ export default function Sidebar({
                   gap: 3,
                   fontSize: 9.5,
                   fontWeight: 800,
-                  color: '#f5c451',
-                  background: 'rgba(245,196,81,.12)',
-                  border: '1px solid rgba(245,196,81,.3)',
+                  color: '#a78bfa',
+                  background: 'rgba(167,139,250,.14)',
+                  border: '1px solid rgba(167,139,250,.32)',
                   padding: '3px 6px',
                   borderRadius: 6,
                 }}
               >
                 <Icon name="lock" size={9} strokeWidth={0} stroke="none" style={{ fill: 'currentColor' }} />
-                CEO
+                ADMIN
               </span>
+            ) : (
+              w.ceoOnly && (
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    fontSize: 9.5,
+                    fontWeight: 800,
+                    color: '#f5c451',
+                    background: 'rgba(245,196,81,.12)',
+                    border: '1px solid rgba(245,196,81,.3)',
+                    padding: '3px 6px',
+                    borderRadius: 6,
+                  }}
+                >
+                  <Icon name="lock" size={9} strokeWidth={0} stroke="none" style={{ fill: 'currentColor' }} />
+                  CEO
+                </span>
+              )
             )}
           </div>
         )

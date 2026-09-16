@@ -25,7 +25,8 @@ const roleToAccessKey: Partial<Record<Role, keyof AccessMatrix>> = {
 
 export function visibleWorkspaces(role: Role, matrix: AccessMatrix): Set<Workspace> {
   if (role === 'CEO' || role === 'Admin') {
-    return new Set(WORKSPACE_ITEMS.map((w) => w.key))
+    // adminOnly workspaces (currently just Activity) are hidden from CEO too.
+    return new Set(WORKSPACE_ITEMS.filter((w) => !w.adminOnly || role === 'Admin').map((w) => w.key))
   }
   const col = roleToAccessKey[role]
   const out = new Set<Workspace>(['faq'])
