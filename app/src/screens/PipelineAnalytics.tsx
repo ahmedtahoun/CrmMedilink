@@ -33,9 +33,10 @@ export default function PipelineAnalytics({ clinics }: Props) {
     })
     const bestPriority = [...priorityWinRate].sort((x, y) => y.rate - x.rate)[0]
 
-    // funnel (cumulative reach of each stage)
+    // funnel (cumulative reach of each stage) — "Not Interested" is a lost
+    // bucket, not a forward step, so it doesn't get a funnel bar.
     const idxOf = (c: Clinic) => STAGE_ORDER.indexOf(c.cs)
-    const funnel = CLOSER_STAGES.map((s, i) => ({
+    const funnel = CLOSER_STAGES.filter((s) => s.key !== 'not_interested').map((s, i) => ({
       label: s.title,
       count: clinics.filter((c) => idxOf(c) >= i).length,
     }))

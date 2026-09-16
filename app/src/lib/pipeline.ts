@@ -1,4 +1,4 @@
-import { CLOSER_STAGES, TRAINER_STAGES } from './constants'
+import { CLOSER_BOARD_STAGES, CLOSER_STAGES, TRAINER_STAGES } from './constants'
 import type { Clinic } from './types'
 import { daysUntil } from './format'
 
@@ -8,8 +8,14 @@ export type BoardType = 'closer' | 'trainer'
 // moves it to Commission Based OR Contract Subscription.
 export const isTrainingEligible = (c: Clinic): boolean => c.cs === 'commission' || c.cs === 'signed'
 
+/** Full stage list, for titles/lookups — includes Leads even though it's not a board column. */
 export function stageDefs(board: BoardType) {
   return board === 'closer' ? CLOSER_STAGES : TRAINER_STAGES
+}
+
+/** Stages that actually appear as pipeline board columns. */
+export function boardStageDefs(board: BoardType) {
+  return board === 'closer' ? CLOSER_BOARD_STAGES : TRAINER_STAGES
 }
 
 export function stageTitle(board: BoardType, key: string): string {
@@ -37,6 +43,8 @@ export function filterAndSort(clinics: Clinic[], board: BoardType, f: PipelineFi
   const priRank: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
 
   let out = clinics.filter((c) => {
+    // Leads live on the Leads screen, not the sales pipeline board/table.
+    if (board === 'closer' && c.cs === 'lead') return false
     if (board === 'trainer' && !isTrainingEligible(c)) return false
     if (f.priority !== 'all' && c.pri !== f.priority) return false
     if (f.category !== 'all' && c.cat !== f.category) return false
@@ -77,7 +85,7 @@ export interface Column {
 
 export function buildColumns(clinics: Clinic[], board: BoardType, f: PipelineFilters): Column[] {
   const filtered = filterAndSort(clinics, board, f)
-  return stageDefs(board).map((s) => ({
+  return boardStageDefs(board).map((s) => ({
     key: s.key,
     title: s.title,
     clinics: filtered.filter((c) => clinicStage(board, c) === s.key),

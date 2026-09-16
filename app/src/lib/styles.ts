@@ -61,6 +61,7 @@ const EVENT_PRI: Record<string, string> = {
 export const eventPriorityStyle = (p: string): string => EVENT_PRI[p] || '#647680'
 
 export const stageColorFor = (cs: string, ts: string | null): Swatch => {
+  if (cs === 'not_interested') return { color: '#dc2626', bg: '#fdecec' }
   if (cs !== 'signed' && cs !== 'commission') return { color: '#2563eb', bg: '#eff6ff' }
   if (!ts || ts === 'handoff' || ts === 'scheduled') return { color: '#7c3aed', bg: '#f2e8fc' }
   if (ts === 'reception' || ts === 'followup') return { color: '#0891b2', bg: '#e0f7fa' }

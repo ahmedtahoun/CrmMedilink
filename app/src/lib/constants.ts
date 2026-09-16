@@ -44,8 +44,13 @@ export const CLOSER_STAGES = [
   { key: 'proposal', title: 'Proposal Sent' },
   { key: 'commission', title: 'Commission Based' },
   { key: 'signed', title: 'Contract Subscription' },
+  { key: 'not_interested', title: 'Not Interested' },
 ] as const
 export type CloserStage = (typeof CLOSER_STAGES)[number]['key']
+
+// Sales pipeline board columns — everything except Leads. New leads are
+// worked from the Leads screen; the board tracks clinics once contacted.
+export const CLOSER_BOARD_STAGES = CLOSER_STAGES.filter((s) => s.key !== 'lead')
 
 // --- Training pipeline (trainer board) ---
 export const TRAINER_STAGES = [
