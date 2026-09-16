@@ -14,6 +14,7 @@ import Finance from '../screens/Finance'
 import Hr from '../screens/Hr'
 import Documents from '../screens/Documents'
 import ManageAccess from '../screens/ManageAccess'
+import Activity from '../screens/Activity'
 import Faq from '../screens/Faq'
 import AddClinicModal from '../modals/AddClinicModal'
 
@@ -107,6 +108,7 @@ export default function AppShell({ profile }: AppShellProps) {
         {active === 'finance' && <Finance profile={profile} />}
         {active === 'documents' && <Documents profile={profile} />}
         {active === 'hr' && <Hr profile={profile} />}
+        {active === 'activity' && <Activity profile={profile} />}
         {active === 'faq' && <Faq profile={profile} />}
         {active === 'access' && <ManageAccess profile={profile} matrix={matrix} onChange={reload} />}
       </main>

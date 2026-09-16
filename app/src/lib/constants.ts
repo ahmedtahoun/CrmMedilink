@@ -128,7 +128,7 @@ export const ROLES: Role[] = ['CEO', 'Admin', 'Sales', 'Trainer']
 
 export type Workspace =
   | 'ceo' | 'providers' | 'closer' | 'trainer' | 'finance'
-  | 'documents' | 'hr' | 'faq' | 'access'
+  | 'documents' | 'hr' | 'faq' | 'access' | 'activity'
 
 export const WORKSPACE_ITEMS: { key: Workspace; label: string; ceoOnly?: boolean }[] = [
   { key: 'ceo', label: 'CEO Overview', ceoOnly: true },
@@ -138,6 +138,7 @@ export const WORKSPACE_ITEMS: { key: Workspace; label: string; ceoOnly?: boolean
   { key: 'finance', label: 'Finance' },
   { key: 'documents', label: 'Documents' },
   { key: 'hr', label: 'HR', ceoOnly: true },
+  { key: 'activity', label: 'Activity', ceoOnly: true },
   { key: 'faq', label: 'FAQ' },
   { key: 'access', label: 'Manage Access', ceoOnly: true },
 ]

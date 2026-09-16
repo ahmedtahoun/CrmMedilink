@@ -60,6 +60,16 @@ const EVENT_PRI: Record<string, string> = {
 }
 export const eventPriorityStyle = (p: string): string => EVENT_PRI[p] || '#647680'
 
+const COMMENT_TYPE: Record<string, [string, string]> = {
+  Note: ['#0e6b52', '#e3f4ee'],
+  Call: ['#2563eb', '#eff6ff'],
+  Visit: ['#b45309', '#fbf1e0'],
+}
+export const commentTypeStyle = (t: string): Swatch => {
+  const v = COMMENT_TYPE[t] || ['#475569', '#eef1f4']
+  return { color: v[0], bg: v[1] }
+}
+
 export const stageColorFor = (cs: string, ts: string | null): Swatch => {
   if (cs === 'not_interested') return { color: '#dc2626', bg: '#fdecec' }
   if (cs !== 'signed' && cs !== 'commission') return { color: '#2563eb', bg: '#eff6ff' }

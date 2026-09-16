@@ -14,7 +14,7 @@ import {
   addTask,
   toggleTask,
 } from '../lib/clinics'
-import { catStyle, priStyle, stageColorFor } from '../lib/styles'
+import { catStyle, commentTypeStyle, priStyle, stageColorFor } from '../lib/styles'
 import { contactLabel, shortDay } from '../lib/format'
 import { riskFlags, stageTitle, type BoardType } from '../lib/pipeline'
 import {
@@ -49,12 +49,6 @@ const TRAINER_NEXT: Record<string, { label: string; next: string }> = {
   scheduled: { label: 'Start Reception Training', next: 'reception' },
   reception: { label: 'Start Follow-up', next: 'followup' },
   followup: { label: 'Mark Live', next: 'live' },
-}
-
-const COMMENT_TYPE_STYLE: Record<string, { color: string; bg: string }> = {
-  Note: { color: '#0e6b52', bg: '#e3f4ee' },
-  Call: { color: '#2563eb', bg: '#eff6ff' },
-  Visit: { color: '#b45309', bg: '#fbf1e0' },
 }
 
 export default function ClinicDetailModal({ clinicId, profile, board, onClose }: Props) {
@@ -464,7 +458,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                         ) : (
                           <>
                             <strong>{c.author}</strong> · {shortDay(c.created_at)} ·{' '}
-                            <Pill swatch={COMMENT_TYPE_STYLE[c.type] ?? COMMENT_TYPE_STYLE.Note}>{c.type}</Pill> — {c.text}
+                            <Pill swatch={commentTypeStyle(c.type)}>{c.type}</Pill> — {c.text}
                             {c.edited && <span style={{ color: 'var(--muted-4)', fontWeight: 700 }}> (edited)</span>}
                             {canEditComment && (
                               <span
