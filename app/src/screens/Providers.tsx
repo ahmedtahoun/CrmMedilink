@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Clinic, Profile } from '../lib/types'
-import { CLOSER_STAGES, HEALTHCARE_TYPES, MARKETS } from '../lib/constants'
+import { CLOSER_STAGES, HEALTHCARE_TYPES, MARKETS, PRIORITIES } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { useIsMobile } from '../lib/useIsMobile'
 import { useClinics, updateClinic } from '../lib/clinics'
@@ -39,6 +39,8 @@ export default function Providers({ profile }: Props) {
   const [q, setQ] = useState('')
   const [typeF, setTypeF] = useState('all')
   const [statusF, setStatusF] = useState('all')
+  const [stageF, setStageF] = useState('all')
+  const [priF, setPriF] = useState('all')
   const [page, setPage] = useState(1)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
@@ -50,13 +52,15 @@ export default function Providers({ profile }: Props) {
     return clinics.filter((c) => {
       if (typeF !== 'all' && (c.healthcare_type ?? 'Clinic') !== typeF) return false
       if (statusF !== 'all' && c.sub_status !== statusF) return false
+      if (stageF !== 'all' && c.cs !== stageF) return false
+      if (priF !== 'all' && c.pri !== priF) return false
       if (needle) {
         const hay = `${c.name} ${c.area ?? ''} ${c.contact ?? ''}`.toLowerCase()
         if (!hay.includes(needle)) return false
       }
       return true
     })
-  }, [clinics, q, typeF, statusF])
+  }, [clinics, q, typeF, statusF, stageF, priF])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const curPage = Math.min(page, pageCount)
@@ -142,6 +146,22 @@ export default function Providers({ profile }: Props) {
             <option value="trial">Free Trial</option>
             <option value="expired">Expired</option>
             <option value="inactive">Deactivated</option>
+          </select>
+          <select className="ml-select" value={stageF} onChange={(e) => setStageF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
+            <option value="all">All stages</option>
+            {CLOSER_STAGES.map((s) => (
+              <option key={s.key} value={s.key}>
+                {s.title}
+              </option>
+            ))}
+          </select>
+          <select className="ml-select" value={priF} onChange={(e) => setPriF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
+            <option value="all">All priorities</option>
+            {PRIORITIES.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
           </select>
         </div>
       </div>
