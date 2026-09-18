@@ -121,6 +121,7 @@ export const EMPLOYEE_STATUS = [
 ]
 export const HR_CURRENCIES = ['USD', 'EGP', 'AED', 'SAR', 'QAR']
 export const COUNTRY_OPTIONS = ['Egypt', 'UAE', 'Saudi Arabia', 'Qatar']
+export const LEAVE_TYPES = ['Annual', 'Sick', 'Casual'] as const
 
 // --- Auth roles & workspaces ---
 export type Role = 'CEO' | 'Admin' | 'Sales' | 'Trainer'

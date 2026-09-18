@@ -11,10 +11,13 @@ import Pill from '../components/Pill'
 import ExportButton from '../components/ExportButton'
 import { exportObjects, stampedName } from '../lib/csv'
 import HrModal from '../modals/HrModal'
+import HrLeaveCalendar from './HrLeaveCalendar'
 
 interface Props {
   profile: Profile
 }
+
+type Tab = 'directory' | 'leave'
 
 export default function Hr({ profile }: Props) {
   const showToast = useAppStore((s) => s.showToast)
@@ -22,6 +25,7 @@ export default function Hr({ profile }: Props) {
   const canEdit = profile.role === 'CEO' || profile.role === 'Admin'
   const isMobile = useIsMobile()
 
+  const [tab, setTab] = useState<Tab>('directory')
   const [q, setQ] = useState('')
   const [countryF, setCountryF] = useState('all')
   const [deptF, setDeptF] = useState('all')
@@ -93,7 +97,7 @@ export default function Hr({ profile }: Props) {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: isMobile ? 12 : 18, flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: isMobile ? 18 : 23, letterSpacing: '-.6px', margin: '0 0 4px', color: 'var(--ink)', paddingLeft: isMobile ? 52 : 0 }}>
-              Team Directory
+              {tab === 'directory' ? 'Team Directory' : 'Leave Calendar'}
             </h1>
             {!isMobile && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#b45309' }}>
@@ -102,42 +106,74 @@ export default function Hr({ profile }: Props) {
               </div>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0, width: isMobile ? '100%' : undefined }}>
-            <ExportButton
-              disabled={filtered.length === 0}
-              onClick={() =>
-                exportObjects<(typeof filtered)[number]>(
-                  stampedName('team-directory'),
-                  [
-                    ['Name', (e) => e.name],
-                    ['Email', (e) => e.email],
-                    ['Phone', (e) => e.phone],
-                    ['Country', (e) => e.country],
-                    ['Department', (e) => e.department],
-                    ['Position', (e) => e.position],
-                    ['Employment type', (e) => e.employment_type],
-                    ['Status', (e) => e.status],
-                    ['Start date', (e) => e.start_date],
-                    ['Manager', (e) => e.manager],
-                    ['Base salary', (e) => e.base_salary],
-                    ['Currency', (e) => e.currency],
-                    ['Commission %', (e) => e.commission_rate],
-                    ['Allowance', (e) => e.allowance],
-                  ],
-                  filtered,
-                )
-              }
-            />
-            {canEdit && (
-              <button className="ml-btn" onClick={() => setModal({ editing: null })}>
-                <Icon name="plus" size={16} strokeWidth={2.6} />
-                Add Employee
-              </button>
-            )}
-          </div>
+          {tab === 'directory' && (
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0, width: isMobile ? '100%' : undefined }}>
+              <ExportButton
+                disabled={filtered.length === 0}
+                onClick={() =>
+                  exportObjects<(typeof filtered)[number]>(
+                    stampedName('team-directory'),
+                    [
+                      ['Name', (e) => e.name],
+                      ['Email', (e) => e.email],
+                      ['Phone', (e) => e.phone],
+                      ['Country', (e) => e.country],
+                      ['Department', (e) => e.department],
+                      ['Position', (e) => e.position],
+                      ['Employment type', (e) => e.employment_type],
+                      ['Status', (e) => e.status],
+                      ['Start date', (e) => e.start_date],
+                      ['Manager', (e) => e.manager],
+                      ['Base salary', (e) => e.base_salary],
+                      ['Currency', (e) => e.currency],
+                      ['Commission %', (e) => e.commission_rate],
+                      ['Allowance', (e) => e.allowance],
+                    ],
+                    filtered,
+                  )
+                }
+              />
+              {canEdit && (
+                <button className="ml-btn" onClick={() => setModal({ editing: null })}>
+                  <Icon name="plus" size={16} strokeWidth={2.6} />
+                  Add Employee
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 4, background: 'var(--tab-track-2)', padding: 4, borderRadius: 11, marginBottom: isMobile ? 14 : 18, width: isMobile ? '100%' : 'fit-content' }}>
+          {(
+            [
+              { key: 'directory', label: 'Directory' },
+              { key: 'leave', label: 'Leave Calendar' },
+            ] as { key: Tab; label: string }[]
+          ).map((t) => (
+            <div
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              style={{
+                padding: '8px 15px',
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: 12.5,
+                cursor: 'pointer',
+                flex: isMobile ? 1 : undefined,
+                textAlign: 'center',
+                background: tab === t.key ? '#fff' : 'transparent',
+                color: tab === t.key ? 'var(--ink)' : 'var(--muted-3)',
+              }}
+            >
+              {t.label}
+            </div>
+          ))}
         </div>
       </div>
 
+      {tab === 'leave' && <HrLeaveCalendar />}
+
+      {tab === 'directory' && (
       <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? '0 14px 20px' : '0 26px 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 16 }}>
           {kpis.map((k) => (
@@ -345,6 +381,7 @@ export default function Hr({ profile }: Props) {
         </div>
         )}
       </div>
+      )}
 
       {modal && <HrModal editing={modal.editing} onClose={() => setModal(null)} onSaved={reload} />}
     </>

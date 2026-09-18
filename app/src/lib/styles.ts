@@ -70,6 +70,17 @@ export const commentTypeStyle = (t: string): Swatch => {
   return { color: v[0], bg: v[1] }
 }
 
+const LEAVE_TYPE_MAP: Record<string, [string, string]> = {
+  Annual: ['#2563eb', '#e7f0fe'],
+  Sick: ['#dc2626', '#fdecec'],
+  Casual: ['#9333ea', '#f2e8fc'],
+}
+export const leaveTypeStyle = (t: string): Swatch => {
+  const v = LEAVE_TYPE_MAP[t] || ['#475569', '#eef1f4']
+  return { color: v[0], bg: v[1] }
+}
+export const HOLIDAY_SWATCH: Swatch = { color: '#b45309', bg: '#fbf1e0' }
+
 export const stageColorFor = (cs: string, ts: string | null): Swatch => {
   if (cs === 'not_interested') return { color: '#dc2626', bg: '#fdecec' }
   if (cs !== 'signed' && cs !== 'commission') return { color: '#2563eb', bg: '#eff6ff' }

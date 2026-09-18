@@ -134,6 +134,24 @@ export interface Employee {
   created_at?: string
 }
 
+export interface EmployeeLeave {
+  id: string
+  employee_id: string
+  type: 'Annual' | 'Sick' | 'Casual'
+  start_date: string
+  end_date: string
+  notes: string | null
+  created_at?: string
+}
+
+export interface PublicHoliday {
+  id: string
+  country: string
+  name: string
+  date: string
+  created_at?: string
+}
+
 export interface LineItem {
   id?: string
   description: string
