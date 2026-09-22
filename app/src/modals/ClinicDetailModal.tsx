@@ -15,7 +15,7 @@ import {
   toggleTask,
 } from '../lib/clinics'
 import { catStyle, commentTypeStyle, priStyle, stageColorFor } from '../lib/styles'
-import { contactLabel, shortDay } from '../lib/format'
+import { contactLabel, shortDay, shortDateTime } from '../lib/format'
 import { riskFlags, stageTitle, type BoardType } from '../lib/pipeline'
 import {
   useClinicAttachments,
@@ -160,7 +160,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
   // Full edit form replaces this modal (rather than stacking on top of it) —
   // it reappears with the fresh data as soon as the edit form closes.
   if (editingLead) {
-    return <AddClinicModal editing={clinic} onClose={() => setEditingLead(false)} />
+    return <AddClinicModal editing={clinic} profile={profile} onClose={() => setEditingLead(false)} />
   }
 
   return (
@@ -320,6 +320,10 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                     </span>
                   </div>
                 </div>
+                <Field
+                  label="Created by"
+                  value={clinic.created_by ? `${clinic.created_by} · ${shortDateTime(clinic.created_at ?? null)}` : null}
+                />
               </div>
 
               <div style={{ marginBottom: 22 }}>
@@ -336,6 +340,21 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                 <div style={{ border: '1px solid var(--border-2)', borderRadius: 13, padding: '16px 18px', marginBottom: 22 }}>
                   <div style={{ ...labelSm, marginBottom: 12 }}>Trial &amp; subscription</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 22px', marginBottom: 16 }}>
+                    {clinic.cs === 'commission' && (
+                      <div>
+                        <label style={{ ...labelSm, display: 'block', marginBottom: 5 }}>Commission %</label>
+                        <input
+                          className="ml-input"
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.5}
+                          value={clinic.commission_pct ?? ''}
+                          onChange={(e) => patch({ commission_pct: e.target.value === '' ? null : Number(e.target.value) })}
+                          placeholder="e.g. 15"
+                        />
+                      </div>
+                    )}
                     <DateField label="Trial Start" value={clinic.trial_from} onChange={(v) => patch({ trial_from: v })} />
                     <DateField label="Trial End" value={clinic.trial_to} onChange={(v) => patch({ trial_to: v })} />
                     <DateField label="Subscription Start" value={clinic.sub_from} onChange={(v) => patch({ sub_from: v })} />

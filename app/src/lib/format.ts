@@ -52,6 +52,26 @@ export const shortDay = (iso: string | null | undefined): string => {
   return `${d.getDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()]}`
 }
 
+// "18 Sep, 2:45 PM" style label — used where the time of an action matters,
+// not just the day (e.g. who created a lead and when).
+export const shortDateTime = (iso: string | null | undefined): string => {
+  if (!iso) return '—'
+  const d = new Date(iso.length <= 10 ? iso + 'T00:00:00' : iso)
+  if (Number.isNaN(d.getTime())) return String(iso)
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  return `${shortDay(iso)}, ${time}`
+}
+
+// Strips formatting so differently-typed numbers can be compared for
+// duplicates, e.g. "+20 111 9544788" and "0 111 9544788" both -> "1119544788".
+export const normalizePhone = (phone: string | null | undefined): string => {
+  if (!phone) return ''
+  let d = phone.replace(/\D/g, '')
+  if (d.startsWith('20') && d.length > 10) d = d.slice(2)
+  if (d.startsWith('0')) d = d.slice(1)
+  return d
+}
+
 export const daysUntil = (iso: string | null | undefined): number | null => {
   if (!iso) return null
   const target = new Date(iso.length <= 10 ? iso + 'T00:00:00' : iso).getTime()

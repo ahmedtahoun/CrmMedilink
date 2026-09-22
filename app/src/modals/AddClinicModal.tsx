@@ -12,7 +12,7 @@ import {
 import { useAppStore } from '../store/appStore'
 import { useEmployees } from '../lib/employees'
 import { createClinic, updateClinic } from '../lib/clinics'
-import type { Clinic } from '../lib/types'
+import type { Clinic, Profile } from '../lib/types'
 import Modal from '../components/Modal'
 
 interface Props {
@@ -20,9 +20,11 @@ interface Props {
   asProvider?: boolean
   /** Pass an existing clinic to edit it instead of creating a new one. */
   editing?: Clinic | null
+  /** Who's creating the lead — stamped as created_by, ignored when editing. */
+  profile: Profile
 }
 
-export default function AddClinicModal({ onClose, asProvider, editing }: Props) {
+export default function AddClinicModal({ onClose, asProvider, editing, profile }: Props) {
   const market = useAppStore((s) => s.market)
   const showToast = useAppStore((s) => s.showToast)
   const { employees } = useEmployees()
@@ -104,6 +106,8 @@ export default function AddClinicModal({ onClose, asProvider, editing }: Props) 
       cs: 'lead',
       is_provider: !!asProvider,
       cs_date: new Date().toISOString().slice(0, 10),
+      created_by: profile.name,
+      created_by_id: profile.id,
     })
     setSaving(false)
     if (error) return showToast(error)

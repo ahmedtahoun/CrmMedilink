@@ -7,7 +7,7 @@ import { useClinics, updateClinic } from '../lib/clinics'
 import { supabase } from '../lib/supabase'
 import { catStyle, priStyle, initials, repColor } from '../lib/styles'
 import { stageTitle } from '../lib/pipeline'
-import { contactLabel } from '../lib/format'
+import { contactLabel, normalizePhone } from '../lib/format'
 import Pill from '../components/Pill'
 import Icon from '../components/Icon'
 import ExportButton from '../components/ExportButton'
@@ -49,18 +49,34 @@ export default function Providers({ profile }: Props) {
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
+    const needleDigits = needle.replace(/\D/g, '')
     return clinics.filter((c) => {
       if (typeF !== 'all' && (c.healthcare_type ?? 'Clinic') !== typeF) return false
       if (statusF !== 'all' && c.sub_status !== statusF) return false
       if (stageF !== 'all' && c.cs !== stageF) return false
       if (priF !== 'all' && c.pri !== priF) return false
       if (needle) {
-        const hay = `${c.name} ${c.area ?? ''} ${c.contact ?? ''}`.toLowerCase()
-        if (!hay.includes(needle)) return false
+        const hay = `${c.name} ${c.area ?? ''} ${c.contact ?? ''} ${c.phone ?? ''}`.toLowerCase()
+        const phoneDigits = (c.phone ?? '').replace(/\D/g, '')
+        const matchesPhone = needleDigits.length >= 3 && phoneDigits.includes(needleDigits)
+        if (!hay.includes(needle) && !matchesPhone) return false
       }
       return true
     })
   }, [clinics, q, typeF, statusF, stageF, priF])
+
+  // clinics in this market sharing the same phone number, keyed by the
+  // normalized number — flagged in the list so Sales can spot double entries.
+  const phoneDupes = useMemo(() => {
+    const byPhone = new Map<string, Clinic[]>()
+    for (const c of clinics) {
+      const p = normalizePhone(c.phone)
+      if (!p) continue
+      byPhone.set(p, [...(byPhone.get(p) ?? []), c])
+    }
+    for (const [p, list] of byPhone) if (list.length < 2) byPhone.delete(p)
+    return byPhone
+  }, [clinics])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const curPage = Math.min(page, pageCount)
@@ -132,7 +148,7 @@ export default function Providers({ profile }: Props) {
             <span style={{ position: 'absolute', left: 13, color: '#93a1aa', display: 'flex' }}>
               <Icon name="search" size={16} strokeWidth={2} />
             </span>
-            <input className="ml-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search lead, city, contact…" style={{ paddingLeft: 38, borderRadius: 11 }} />
+            <input className="ml-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search lead, city, contact, phone…" style={{ paddingLeft: 38, borderRadius: 11 }} />
           </div>
           <select className="ml-select" value={typeF} onChange={(e) => setTypeF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
             <option value="all">All types</option>
@@ -172,7 +188,13 @@ export default function Providers({ profile }: Props) {
             {loading && <div className="ml-empty">Loading…</div>}
             {error && <div className="ml-empty" style={{ color: 'var(--danger)' }}>{error}</div>}
             {!loading && rows.map((c) => (
-              <ProviderCard key={c.id} c={c} onOpen={() => setDetailId(c.id)} onDelete={() => del(c.id, c.name)} />
+              <ProviderCard
+                key={c.id}
+                c={c}
+                dupes={c.phone ? phoneDupes.get(normalizePhone(c.phone)) : undefined}
+                onOpen={() => setDetailId(c.id)}
+                onDelete={() => del(c.id, c.name)}
+              />
             ))}
             {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '40px 0' }}>No leads match your filters</div>}
           </div>
@@ -204,7 +226,9 @@ export default function Providers({ profile }: Props) {
 
           {loading && <div className="ml-empty">Loading…</div>}
           {error && <div className="ml-empty" style={{ color: 'var(--danger)' }}>{error}</div>}
-          {!loading && rows.map((c) => (
+          {!loading && rows.map((c) => {
+            const dupeGroup = c.phone ? phoneDupes.get(normalizePhone(c.phone)) : undefined
+            return (
             <div
               key={c.id}
               onClick={() => setDetailId(c.id)}
@@ -269,6 +293,14 @@ export default function Providers({ profile }: Props) {
               <div style={{ minWidth: 0 }}>
                 <div style={{ color: 'var(--text)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{contactLabel(c.contact, c.contact_position)}</div>
                 <div style={{ fontSize: 10.5, color: 'var(--muted-4)' }}>{c.phone || ''}</div>
+                {dupeGroup && (
+                  <div
+                    title={`Same phone as: ${dupeGroup.filter((x) => x.id !== c.id).map((x) => x.name).join(', ')}`}
+                    style={{ fontSize: 10, fontWeight: 800, color: '#b45309', marginTop: 2 }}
+                  >
+                    ⚠ Duplicate phone
+                  </div>
+                )}
               </div>
               <div>
                 <Pill swatch={catStyle(c.cat)}>{c.sub_status}</Pill>
@@ -282,7 +314,7 @@ export default function Providers({ profile }: Props) {
                 </button>
               </div>
             </div>
-          ))}
+          )})}
 
           {!loading && filtered.length === 0 && <div className="ml-empty" style={{ padding: '48px 0' }}>No leads match your filters</div>}
         </div>
@@ -324,12 +356,22 @@ export default function Providers({ profile }: Props) {
       {detailId && (
         <ClinicDetailModal clinicId={detailId} profile={profile} board="closer" onClose={() => setDetailId(null)} />
       )}
-      {addOpen && <AddClinicModal asProvider onClose={() => setAddOpen(false)} />}
+      {addOpen && <AddClinicModal asProvider profile={profile} onClose={() => setAddOpen(false)} />}
     </>
   )
 }
 
-function ProviderCard({ c, onOpen, onDelete }: { c: Clinic; onOpen: () => void; onDelete: () => void }) {
+function ProviderCard({
+  c,
+  dupes,
+  onOpen,
+  onDelete,
+}: {
+  c: Clinic
+  dupes?: Clinic[]
+  onOpen: () => void
+  onDelete: () => void
+}) {
   return (
     <div className="ml-card" onClick={onOpen} style={{ padding: '13px 14px', cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -387,6 +429,14 @@ function ProviderCard({ c, onOpen, onDelete }: { c: Clinic; onOpen: () => void; 
       {(c.contact || c.phone) && (
         <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 8 }}>
           {[c.contact ? contactLabel(c.contact, c.contact_position) : null, c.phone].filter(Boolean).join(' · ')}
+        </div>
+      )}
+      {dupes && (
+        <div
+          title={`Same phone as: ${dupes.filter((x) => x.id !== c.id).map((x) => x.name).join(', ')}`}
+          style={{ fontSize: 10.5, fontWeight: 800, color: '#b45309', marginTop: 4 }}
+        >
+          ⚠ Duplicate phone
         </div>
       )}
     </div>

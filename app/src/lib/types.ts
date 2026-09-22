@@ -55,8 +55,11 @@ export interface Clinic {
   sub_to: string | null
   sub_status: 'active' | 'trial' | 'expired' | 'inactive'
   sub_reason: string | null
+  commission_pct: number | null
   board_order: number
   is_provider: boolean
+  created_by: string | null
+  created_by_id: string | null
   created_at?: string
   updated_at?: string
 }

@@ -423,6 +423,7 @@ function ClinicCard({
           </span>
         </span>
         <span
+          title="Last updated"
           style={{
             flexShrink: 0,
             fontSize: 11,
@@ -434,7 +435,7 @@ function ClinicCard({
             whiteSpace: 'nowrap',
           }}
         >
-          {shortDay(clinic.cs_date ?? clinic.created_at ?? null)}
+          {shortDay(clinic.updated_at ?? clinic.created_at ?? null)}
         </span>
       </div>
 
@@ -458,6 +459,9 @@ function ClinicCard({
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         <Pill swatch={cat}>{clinic.cat}</Pill>
         <Pill swatch={pri}>{clinic.pri}</Pill>
+        {clinic.cs === 'commission' && clinic.commission_pct != null && (
+          <Pill swatch={{ color: '#7c3aed', bg: '#f1e9fd' }}>{clinic.commission_pct}% commission</Pill>
+        )}
         {tdl !== null && tdl >= 0 && tdl <= 7 && (
           <Pill swatch={{ color: '#b45309', bg: '#fef3e2' }}>Trial {tdl}d</Pill>
         )}
