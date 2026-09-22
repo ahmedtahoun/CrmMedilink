@@ -338,7 +338,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
 
               {reachedMou && !isTrainerView && (
                 <div style={{ border: '1px solid var(--border-2)', borderRadius: 13, padding: '16px 18px', marginBottom: 22 }}>
-                  <div style={{ ...labelSm, marginBottom: 12 }}>Trial &amp; subscription</div>
+                  <div style={{ ...labelSm, marginBottom: 12 }}>Contract</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 22px', marginBottom: 16 }}>
                     {clinic.cs === 'commission' && (
                       <div>
@@ -355,10 +355,8 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                         />
                       </div>
                     )}
-                    <DateField label="Trial Start" value={clinic.trial_from} onChange={(v) => patch({ trial_from: v })} />
-                    <DateField label="Trial End" value={clinic.trial_to} onChange={(v) => patch({ trial_to: v })} />
-                    <DateField label="Subscription Start" value={clinic.sub_from} onChange={(v) => patch({ sub_from: v })} />
-                    <DateField label="Subscription End" value={clinic.sub_to} onChange={(v) => patch({ sub_to: v })} />
+                    <DateField label="Start Date" value={clinic.sub_from} onChange={(v) => patch({ sub_from: v })} />
+                    <DateField label="End Date" value={clinic.sub_to} onChange={(v) => patch({ sub_to: v })} />
                   </div>
 
                   {clinic.sub_status !== 'inactive' ? (

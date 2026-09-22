@@ -41,29 +41,12 @@ export default function Providers({ profile }: Props) {
   const [statusF, setStatusF] = useState('all')
   const [stageF, setStageF] = useState('all')
   const [priF, setPriF] = useState('all')
+  const [dupesOnly, setDupesOnly] = useState(false)
   const [page, setPage] = useState(1)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [addOpen, setAddOpen] = useState(false)
 
   const marketLabel = MARKETS.find((m) => m.key === market)?.label ?? ''
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase()
-    const needleDigits = needle.replace(/\D/g, '')
-    return clinics.filter((c) => {
-      if (typeF !== 'all' && (c.healthcare_type ?? 'Clinic') !== typeF) return false
-      if (statusF !== 'all' && c.sub_status !== statusF) return false
-      if (stageF !== 'all' && c.cs !== stageF) return false
-      if (priF !== 'all' && c.pri !== priF) return false
-      if (needle) {
-        const hay = `${c.name} ${c.area ?? ''} ${c.contact ?? ''} ${c.phone ?? ''}`.toLowerCase()
-        const phoneDigits = (c.phone ?? '').replace(/\D/g, '')
-        const matchesPhone = needleDigits.length >= 3 && phoneDigits.includes(needleDigits)
-        if (!hay.includes(needle) && !matchesPhone) return false
-      }
-      return true
-    })
-  }, [clinics, q, typeF, statusF, stageF, priF])
 
   // clinics in this market sharing the same phone number, keyed by the
   // normalized number — flagged in the list so Sales can spot double entries.
@@ -77,6 +60,37 @@ export default function Providers({ profile }: Props) {
     for (const [p, list] of byPhone) if (list.length < 2) byPhone.delete(p)
     return byPhone
   }, [clinics])
+  const dupeLeadCount = useMemo(
+    () => Array.from(phoneDupes.values()).reduce((n, group) => n + group.length, 0),
+    [phoneDupes],
+  )
+  // once the duplicates you were reviewing are all resolved, the toggle goes
+  // inert on its own (the button that drives it is hidden in the same case)
+  const dupesFilterActive = dupesOnly && phoneDupes.size > 0
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    const needleDigits = needle.replace(/\D/g, '')
+    const list = clinics.filter((c) => {
+      if (typeF !== 'all' && (c.healthcare_type ?? 'Clinic') !== typeF) return false
+      if (statusF !== 'all' && c.sub_status !== statusF) return false
+      if (stageF !== 'all' && c.cs !== stageF) return false
+      if (priF !== 'all' && c.pri !== priF) return false
+      if (dupesFilterActive && !(c.phone && phoneDupes.has(normalizePhone(c.phone)))) return false
+      if (needle) {
+        const hay = `${c.name} ${c.area ?? ''} ${c.contact ?? ''} ${c.phone ?? ''}`.toLowerCase()
+        const phoneDigits = (c.phone ?? '').replace(/\D/g, '')
+        const matchesPhone = needleDigits.length >= 3 && phoneDigits.includes(needleDigits)
+        if (!hay.includes(needle) && !matchesPhone) return false
+      }
+      return true
+    })
+    // group same-phone leads next to each other so duplicates are easy to compare
+    if (dupesFilterActive) {
+      list.sort((a, b) => normalizePhone(a.phone).localeCompare(normalizePhone(b.phone)) || a.name.localeCompare(b.name))
+    }
+    return list
+  }, [clinics, q, typeF, statusF, stageF, priF, dupesFilterActive, phoneDupes])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const curPage = Math.min(page, pageCount)
@@ -179,6 +193,31 @@ export default function Providers({ profile }: Props) {
               </option>
             ))}
           </select>
+          {phoneDupes.size > 0 && (
+            <button
+              onClick={() => {
+                setDupesOnly((v) => !v)
+                setPage(1)
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '9px 14px',
+                borderRadius: 11,
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                flex: isMobile ? '1 0 100%' : undefined,
+                justifyContent: isMobile ? 'center' : undefined,
+                border: dupesOnly ? '1px solid #e8a33d' : '1px solid var(--border)',
+                background: dupesOnly ? '#b45309' : '#fbf1e0',
+                color: dupesOnly ? '#fff' : '#b45309',
+              }}
+            >
+              ⚠ {dupeLeadCount} duplicate phone{dupeLeadCount === 1 ? '' : 's'}{dupesOnly ? ' · showing' : ''}
+            </button>
+          )}
         </div>
       </div>
 
