@@ -1,6 +1,6 @@
 import { CLOSER_BOARD_STAGES, CLOSER_STAGES, TRAINER_STAGES } from './constants'
 import type { Clinic } from './types'
-import { daysUntil } from './format'
+import { daysUntil, normalizePhone } from './format'
 
 export type BoardType = 'closer' | 'trainer'
 
@@ -65,6 +65,10 @@ export function filterAndSort(clinics: Clinic[], board: BoardType, f: PipelineFi
         return a.name.localeCompare(b.name)
       case 'recent':
         return (b.created_at ?? '').localeCompare(a.created_at ?? '')
+      case 'activity_desc':
+        return (b.updated_at ?? b.created_at ?? '').localeCompare(a.updated_at ?? a.created_at ?? '')
+      case 'activity_asc':
+        return (a.updated_at ?? a.created_at ?? '').localeCompare(b.updated_at ?? b.created_at ?? '')
       case 'mrr':
         return b.mrr - a.mrr
       case 'priority':
@@ -109,3 +113,19 @@ export function riskFlags(c: Clinic): RiskFlag[] {
 }
 
 export const trialDaysLeft = (c: Clinic): number | null => daysUntil(c.trial_to)
+
+/**
+ * Clinics that share a phone number, grouped by the normalized number —
+ * only numbers used by 2+ clinics are included. Used to flag likely
+ * duplicate leads in the Leads screen and the CEO overview.
+ */
+export function findPhoneDuplicates(clinics: Clinic[]): Map<string, Clinic[]> {
+  const byPhone = new Map<string, Clinic[]>()
+  for (const c of clinics) {
+    const p = normalizePhone(c.phone)
+    if (!p) continue
+    byPhone.set(p, [...(byPhone.get(p) ?? []), c])
+  }
+  for (const [p, list] of byPhone) if (list.length < 2) byPhone.delete(p)
+  return byPhone
+}

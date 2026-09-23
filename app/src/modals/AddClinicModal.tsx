@@ -42,6 +42,8 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
     contact: editing?.contact ?? '',
     contact_position: editing?.contact_position ?? '',
     phone: editing?.phone ?? '',
+    contact2: editing?.contact2 ?? '',
+    contact2_phone: editing?.contact2_phone ?? '',
     email: editing?.email ?? '',
     website: editing?.website ?? '',
     healthcare_type: editing?.healthcare_type ?? '',
@@ -78,6 +80,8 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
       contact: f.contact || null,
       contact_position: f.contact_position || null,
       phone: f.phone || null,
+      contact2: f.contact2 || null,
+      contact2_phone: f.contact2_phone || null,
       email: f.email || null,
       website: f.website || null,
       healthcare_type: f.healthcare_type || null,
@@ -156,6 +160,14 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
         <div>
           <label className="ml-label">Phone</label>
           <input className="ml-input" value={f.phone} onChange={(e) => set('phone', e.target.value)} />
+        </div>
+        <div>
+          <label className="ml-label">Second contact</label>
+          <input className="ml-input" value={f.contact2} onChange={(e) => set('contact2', e.target.value)} placeholder="Optional — another contact at the clinic" />
+        </div>
+        <div>
+          <label className="ml-label">Second contact phone</label>
+          <input className="ml-input" value={f.contact2_phone} onChange={(e) => set('contact2_phone', e.target.value)} />
         </div>
         <div>
           <label className="ml-label">Email</label>

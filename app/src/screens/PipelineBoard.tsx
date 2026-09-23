@@ -15,7 +15,7 @@ import type { Profile } from '../lib/types'
 import type { Clinic } from '../lib/types'
 import { CLINIC_CATEGORIES } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
-import { useClinics, moveClinicStage, bulkAssign, bulkMoveStage } from '../lib/clinics'
+import { useClinics, useLastCommentDates, moveClinicStage, bulkAssign, bulkMoveStage } from '../lib/clinics'
 import {
   buildColumns,
   filterAndSort,
@@ -56,6 +56,9 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
   const { clinics, loading, error } = useClinics(market)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [dragId, setDragId] = useState<string | null>(null)
+
+  const clinicIds = useMemo(() => clinics.map((c) => c.id), [clinics])
+  const { dates: lastComments, reload: reloadLastComments } = useLastCommentDates(clinicIds)
 
   const filters = useMemo(
     () => ({ search, priority, category, sort, repFilter }),
@@ -130,6 +133,8 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                     ['Contact', (c) => c.contact],
                     ['Position', (c) => c.contact_position],
                     ['Phone', (c) => c.phone],
+                    ['Second contact', (c) => c.contact2],
+                    ['Second contact phone', (c) => c.contact2_phone],
                     ['MRR', (c) => c.mrr],
                     ['Subscription', (c) => c.sub_status],
                     ['Trial ends', (c) => c.trial_to],
@@ -177,6 +182,7 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                       key={c.id}
                       clinic={c}
                       board={boardType}
+                      lastCommentAt={lastComments.get(c.id) ?? null}
                       onClick={() => setDetailId(c.id)}
                     />
                   ))}
@@ -239,7 +245,10 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
           clinicId={detailId}
           profile={profile}
           board={boardType}
-          onClose={() => setDetailId(null)}
+          onClose={() => {
+            setDetailId(null)
+            reloadLastComments()
+          }}
         />
       )}
     </>
@@ -313,11 +322,13 @@ function BoardColumn({
 function ClinicCard({
   clinic,
   board,
+  lastCommentAt,
   onClick,
   overlay,
 }: {
   clinic: Clinic
   board: BoardType
+  lastCommentAt?: string | null
   onClick?: () => void
   overlay?: boolean
 }) {
@@ -423,7 +434,7 @@ function ClinicCard({
           </span>
         </span>
         <span
-          title="Last updated"
+          title="Last activity"
           style={{
             flexShrink: 0,
             fontSize: 11,
@@ -435,7 +446,7 @@ function ClinicCard({
             whiteSpace: 'nowrap',
           }}
         >
-          {shortDay(clinic.updated_at ?? clinic.created_at ?? null)}
+          Upd {shortDay(clinic.updated_at ?? clinic.created_at ?? null)}
         </span>
       </div>
 
@@ -473,6 +484,11 @@ function ClinicCard({
             {f.label}
           </Pill>
         ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8, fontSize: 10.5, fontWeight: 600, color: '#93a1aa' }}>
+        <span>Created <b style={{ color: '#5c6c75', fontWeight: 700 }}>{shortDay(clinic.created_at ?? null)}</b></span>
+        <span>Last comment <b style={{ color: '#5c6c75', fontWeight: 700 }}>{lastCommentAt ? shortDay(lastCommentAt) : '—'}</b></span>
       </div>
 
       {isTrainer && (

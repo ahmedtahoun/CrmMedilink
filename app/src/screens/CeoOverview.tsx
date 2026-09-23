@@ -5,6 +5,7 @@ import { useAppStore } from '../store/appStore'
 import { useClinics } from '../lib/clinics'
 import { useFxRates, setFxRate } from '../lib/fx'
 import { fmtMoney } from '../lib/format'
+import { findPhoneDuplicates } from '../lib/pipeline'
 import { repColor, initials } from '../lib/styles'
 import TopBar from '../components/TopBar'
 
@@ -46,6 +47,15 @@ export default function CeoOverview({ profile }: Props) {
 
   const totalUsd = marketStats.reduce((a, m) => a + m.mrrUsd, 0)
   const totalClinics = marketStats.reduce((a, m) => a + m.count, 0)
+
+  // leads sharing a phone number with another lead — duplicates are checked
+  // per market, since numbers aren't comparable across countries.
+  const dupeStats = MARKETS.map((m) => {
+    const dupes = findPhoneDuplicates(byMarket[m.key] ?? [])
+    const dupeCount = Array.from(dupes.values()).reduce((n, group) => n + group.length, 0)
+    return { ...m, dupeCount }
+  })
+  const totalDupes = dupeStats.reduce((a, m) => a + m.dupeCount, 0)
 
   // leaderboard by closer across live markets
   const leaderboard = useMemo(() => {
@@ -118,6 +128,49 @@ export default function CeoOverview({ profile }: Props) {
             <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 28, color: 'var(--ink-2)' }}>{totalClinics}</div>
           </div>
         </div>
+
+        {totalDupes > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              flexWrap: 'wrap',
+              background: '#fbf1e0',
+              border: '1px solid #f0b060',
+              borderRadius: 14,
+              padding: '14px 18px',
+              marginBottom: 18,
+            }}
+          >
+            <span style={{ fontWeight: 800, color: '#b45309', fontSize: 13 }}>
+              ⚠ {totalDupes} lead{totalDupes === 1 ? '' : 's'} share a phone number with another lead
+            </span>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {dupeStats.filter((m) => m.dupeCount > 0).map((m) => (
+                <span
+                  key={m.key}
+                  onClick={() => {
+                    setMarket(m.key)
+                    setWorkspace('providers')
+                  }}
+                  style={{
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: '#b45309',
+                    background: '#fff',
+                    border: '1px solid #f0b060',
+                    borderRadius: 20,
+                    padding: '4px 10px',
+                  }}
+                >
+                  {m.flag} {m.label}: {m.dupeCount}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 14, marginBottom: 20 }}>
           {marketStats.map((m) => (

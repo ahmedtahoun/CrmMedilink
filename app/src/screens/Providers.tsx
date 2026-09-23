@@ -6,7 +6,7 @@ import { useIsMobile } from '../lib/useIsMobile'
 import { useClinics, updateClinic } from '../lib/clinics'
 import { supabase } from '../lib/supabase'
 import { catStyle, priStyle, initials, repColor } from '../lib/styles'
-import { stageTitle } from '../lib/pipeline'
+import { findPhoneDuplicates, stageTitle } from '../lib/pipeline'
 import { contactLabel, normalizePhone } from '../lib/format'
 import Pill from '../components/Pill'
 import Icon from '../components/Icon'
@@ -50,16 +50,7 @@ export default function Providers({ profile }: Props) {
 
   // clinics in this market sharing the same phone number, keyed by the
   // normalized number — flagged in the list so Sales can spot double entries.
-  const phoneDupes = useMemo(() => {
-    const byPhone = new Map<string, Clinic[]>()
-    for (const c of clinics) {
-      const p = normalizePhone(c.phone)
-      if (!p) continue
-      byPhone.set(p, [...(byPhone.get(p) ?? []), c])
-    }
-    for (const [p, list] of byPhone) if (list.length < 2) byPhone.delete(p)
-    return byPhone
-  }, [clinics])
+  const phoneDupes = useMemo(() => findPhoneDuplicates(clinics), [clinics])
   const dupeLeadCount = useMemo(
     () => Array.from(phoneDupes.values()).reduce((n, group) => n + group.length, 0),
     [phoneDupes],
@@ -137,6 +128,8 @@ export default function Providers({ profile }: Props) {
                     ['Contact', (c) => c.contact],
                     ['Position', (c) => c.contact_position],
                     ['Phone', (c) => c.phone],
+                    ['Second contact', (c) => c.contact2],
+                    ['Second contact phone', (c) => c.contact2_phone],
                     ['Email', (c) => c.email],
                     ['Sales stage', (c) => stageTitle('closer', c.cs)],
                     ['Closer', (c) => c.closer],

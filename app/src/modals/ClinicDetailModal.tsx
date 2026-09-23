@@ -308,6 +308,12 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 22px', marginBottom: 22 }}>
                 <Field label="Contact" value={contactLabel(clinic.contact, clinic.contact_position)} />
                 <Field label="Phone" value={clinic.phone} />
+                {(clinic.contact2 || clinic.contact2_phone) && (
+                  <>
+                    <Field label="Second contact" value={clinic.contact2} />
+                    <Field label="Second contact phone" value={clinic.contact2_phone} />
+                  </>
+                )}
                 <Field label="Email" value={clinic.email} />
                 <Field label="Area" value={clinic.area} />
                 <div>

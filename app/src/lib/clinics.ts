@@ -182,6 +182,42 @@ export async function createClinic(input: Partial<Clinic>): Promise<{ id?: strin
   return { id: (data as { id: string }).id }
 }
 
+// Latest comment timestamp per clinic, for a set of clinic ids — lets board
+// cards show "last comment" alongside created/updated without opening each one.
+export function useLastCommentDates(clinicIds: string[]): { dates: Map<string, string>; reload: () => void } {
+  const [dates, setDates] = useState<Map<string, string>>(new Map())
+  const [tick, setTick] = useState(0)
+  const reload = useCallback(() => setTick((t) => t + 1), [])
+  const key = [...clinicIds].sort().join(',')
+
+  useEffect(() => {
+    if (!key) {
+      setDates(new Map())
+      return
+    }
+    let cancelled = false
+    supabase
+      .from('clinic_comments')
+      .select('clinic_id, created_at')
+      .in('clinic_id', key.split(','))
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (cancelled || !data) return
+        const m = new Map<string, string>()
+        for (const row of data as { clinic_id: string; created_at: string }[]) {
+          if (!m.has(row.clinic_id)) m.set(row.clinic_id, row.created_at)
+        }
+        setDates(m)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, tick])
+
+  return { dates, reload }
+}
+
 // --- clinic detail sub-resources ---
 export function useClinicDetail(clinicId: string | null) {
   const [comments, setComments] = useState<ClinicComment[]>([])

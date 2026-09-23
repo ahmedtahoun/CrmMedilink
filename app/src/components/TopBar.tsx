@@ -26,6 +26,8 @@ const SORT_OPTIONS = [
   { value: 'priority', label: 'Sort: Priority' },
   { value: 'name', label: 'Sort: Name' },
   { value: 'recent', label: 'Sort: Recently added' },
+  { value: 'activity_desc', label: 'Sort: Latest activity first' },
+  { value: 'activity_asc', label: 'Sort: Oldest activity first' },
   { value: 'mrr', label: 'Sort: MRR' },
 ]
 

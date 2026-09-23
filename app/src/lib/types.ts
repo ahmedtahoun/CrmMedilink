@@ -30,6 +30,9 @@ export interface Clinic {
   /** The contact person's role at the clinic, e.g. "Reception", "Marketing", "Owner". */
   contact_position: string | null
   phone: string | null
+  /** An alternate contact at the clinic, e.g. a second owner or manager. */
+  contact2: string | null
+  contact2_phone: string | null
   email: string | null
   website: string | null
   healthcare_type: string | null
