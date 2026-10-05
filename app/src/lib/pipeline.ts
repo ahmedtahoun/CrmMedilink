@@ -38,7 +38,20 @@ export interface PipelineFilters {
   repFilter: string
 }
 
-export function filterAndSort(clinics: Clinic[], board: BoardType, f: PipelineFilters): Clinic[] {
+// A card's "activity" date is the later of when it was created and its last
+// comment — plain edits / stage moves (updated_at) deliberately don't count.
+export function activityAt(c: Clinic, lastCommentAt?: string | null): string {
+  const created = c.created_at ?? ''
+  return lastCommentAt && lastCommentAt > created ? lastCommentAt : created
+}
+
+export function filterAndSort(
+  clinics: Clinic[],
+  board: BoardType,
+  f: PipelineFilters,
+  lastComments?: Map<string, string>,
+): Clinic[] {
+  const act = (c: Clinic) => activityAt(c, lastComments?.get(c.id))
   const q = f.search.trim().toLowerCase()
   const priRank: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
 
@@ -66,9 +79,9 @@ export function filterAndSort(clinics: Clinic[], board: BoardType, f: PipelineFi
       case 'recent':
         return (b.created_at ?? '').localeCompare(a.created_at ?? '')
       case 'activity_desc':
-        return (b.updated_at ?? b.created_at ?? '').localeCompare(a.updated_at ?? a.created_at ?? '')
+        return act(b).localeCompare(act(a))
       case 'activity_asc':
-        return (a.updated_at ?? a.created_at ?? '').localeCompare(b.updated_at ?? b.created_at ?? '')
+        return act(a).localeCompare(act(b))
       case 'mrr':
         return b.mrr - a.mrr
       case 'priority':
@@ -87,8 +100,13 @@ export interface Column {
   clinics: Clinic[]
 }
 
-export function buildColumns(clinics: Clinic[], board: BoardType, f: PipelineFilters): Column[] {
-  const filtered = filterAndSort(clinics, board, f)
+export function buildColumns(
+  clinics: Clinic[],
+  board: BoardType,
+  f: PipelineFilters,
+  lastComments?: Map<string, string>,
+): Column[] {
+  const filtered = filterAndSort(clinics, board, f, lastComments)
   return boardStageDefs(board).map((s) => ({
     key: s.key,
     title: s.title,

@@ -18,6 +18,7 @@ import { useAppStore } from '../store/appStore'
 import { useClinics, useLastCommentDates, moveClinicStage, bulkAssign, bulkMoveStage } from '../lib/clinics'
 import {
   buildColumns,
+  activityAt,
   filterAndSort,
   riskFlags,
   boardStageDefs,
@@ -64,8 +65,8 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
     () => ({ search, priority, category, sort, repFilter }),
     [search, priority, category, sort, repFilter],
   )
-  const columns = useMemo(() => buildColumns(clinics, boardType, filters), [clinics, boardType, filters])
-  const flatRows = useMemo(() => filterAndSort(clinics, boardType, filters), [clinics, boardType, filters])
+  const columns = useMemo(() => buildColumns(clinics, boardType, filters, lastComments), [clinics, boardType, filters, lastComments])
+  const flatRows = useMemo(() => filterAndSort(clinics, boardType, filters, lastComments), [clinics, boardType, filters, lastComments])
 
   const reps = useMemo(() => {
     const key = boardType === 'closer' ? 'closer' : 'trainer'
@@ -446,7 +447,7 @@ function ClinicCard({
             whiteSpace: 'nowrap',
           }}
         >
-          Upd {shortDay(clinic.updated_at ?? clinic.created_at ?? null)}
+          Active {shortDay(activityAt(clinic, lastCommentAt) || null)}
         </span>
       </div>
 

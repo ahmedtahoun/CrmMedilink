@@ -68,7 +68,7 @@ export const useAppStore = create<AppState>()(
       search: '',
       priority: 'all',
       category: 'all',
-      sort: 'priority',
+      sort: 'recent',
       repFilter: 'all',
       selectedIds: [],
 
