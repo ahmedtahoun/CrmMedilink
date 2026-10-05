@@ -21,6 +21,8 @@ import {
   activityAt,
   filterAndSort,
   riskFlags,
+  contractsEndingSoon,
+  CONTRACT_ALERT_DAYS,
   moveStageDefs,
   stageTitle,
   trialDaysLeft,
@@ -67,6 +69,8 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
   )
   const columns = useMemo(() => buildColumns(clinics, boardType, filters, lastComments), [clinics, boardType, filters, lastComments])
   const flatRows = useMemo(() => filterAndSort(clinics, boardType, filters, lastComments), [clinics, boardType, filters, lastComments])
+
+  const endingSoon = useMemo(() => contractsEndingSoon(clinics), [clinics])
 
   const reps = useMemo(() => {
     const key = boardType === 'closer' ? 'closer' : 'trainer'
@@ -138,7 +142,8 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                     ['Second contact phone', (c) => c.contact2_phone],
                     ['MRR', (c) => c.mrr],
                     ['Subscription', (c) => c.sub_status],
-                    ['Trial ends', (c) => c.trial_to],
+                    ['Contract start', (c) => c.sub_from],
+                    ['Contract end', (c) => c.sub_to],
                   ],
                   flatRows,
                 )
@@ -165,6 +170,23 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
 
       {view !== 'calendar' && view !== 'analytics' && (
       <div style={{ flex: 1, overflow: 'auto', padding: pad }}>
+        {endingSoon.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: '#fbf1e0', border: '1px solid #f0b060', borderRadius: 12, padding: '10px 14px', marginBottom: 14 }}>
+            <span style={{ fontWeight: 800, color: '#b45309', fontSize: 12.5 }}>
+              ⏰ {endingSoon.length} contract{endingSoon.length === 1 ? '' : 's'} ending within {CONTRACT_ALERT_DAYS} days
+            </span>
+            {endingSoon.slice(0, 6).map(({ clinic, days }) => (
+              <span
+                key={clinic.id}
+                onClick={() => setDetailId(clinic.id)}
+                style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 700, color: days <= 14 ? '#dc2626' : '#b45309', background: '#fff', border: '1px solid #f0b060', borderRadius: 20, padding: '3px 10px' }}
+              >
+                {clinic.name} · {days < 0 ? `ended ${Math.abs(days)}d ago` : `${days}d`}
+              </span>
+            ))}
+            {endingSoon.length > 6 && <span style={{ fontSize: 11.5, fontWeight: 700, color: '#b45309' }}>+{endingSoon.length - 6} more</span>}
+          </div>
+        )}
         {loading && <div className="ml-empty">Loading clinics…</div>}
         {error && <div className="ml-empty" style={{ color: 'var(--danger)' }}>{error}</div>}
 
@@ -509,8 +531,8 @@ function ClinicCard({
           >
             <div>Trainer: <span style={{ color: '#33424c' }}>{clinic.trainer || '—'}</span></div>
             <div>Sales rep: <span style={{ color: '#33424c' }}>{clinic.closer || '—'}</span></div>
-            <div>Trial ends: <span style={{ color: '#33424c' }}>{shortDay(clinic.trial_to)}</span></div>
-            <div>Sub ends: <span style={{ color: '#33424c' }}>{shortDay(clinic.sub_to)}</span></div>
+            <div>Start: <span style={{ color: '#33424c' }}>{shortDay(clinic.sub_from)}</span></div>
+            <div>End: <span style={{ color: '#33424c' }}>{shortDay(clinic.sub_to)}</span></div>
           </div>
           <div style={{ marginTop: 9, height: 6, background: '#eef1f3', borderRadius: 99, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg,#17c08f,#0e9270)', borderRadius: 99 }} />

@@ -5,7 +5,7 @@ import { useAppStore } from '../store/appStore'
 import { useClinics } from '../lib/clinics'
 import { useFxRates, setFxRate } from '../lib/fx'
 import { fmtMoney } from '../lib/format'
-import { findPhoneDuplicates } from '../lib/pipeline'
+import { findPhoneDuplicates, contractsEndingSoon, CONTRACT_ALERT_DAYS } from '../lib/pipeline'
 import { repColor, initials } from '../lib/styles'
 import TopBar from '../components/TopBar'
 
@@ -56,6 +56,9 @@ export default function CeoOverview({ profile }: Props) {
     return { ...m, dupeCount }
   })
   const totalDupes = dupeStats.reduce((a, m) => a + m.dupeCount, 0)
+
+  const endingStats = MARKETS.map((m) => ({ ...m, ending: contractsEndingSoon(byMarket[m.key] ?? []) }))
+  const totalEnding = endingStats.reduce((a, m) => a + m.ending.length, 0)
 
   // leaderboard by closer across live markets
   const leaderboard = useMemo(() => {
@@ -128,6 +131,29 @@ export default function CeoOverview({ profile }: Props) {
             <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 28, color: 'var(--ink-2)' }}>{totalClinics}</div>
           </div>
         </div>
+
+        {totalEnding > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', background: '#fbf1e0', border: '1px solid #f0b060', borderRadius: 14, padding: '14px 18px', marginBottom: 18 }}>
+            <span style={{ fontWeight: 800, color: '#b45309', fontSize: 13 }}>
+              ⏰ {totalEnding} contract{totalEnding === 1 ? '' : 's'} ending within {CONTRACT_ALERT_DAYS} days
+            </span>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {endingStats.filter((m) => m.ending.length > 0).map((m) => (
+                <span
+                  key={m.key}
+                  onClick={() => {
+                    setMarket(m.key)
+                    setWorkspace('closer')
+                  }}
+                  title={m.ending.map((x) => `${x.clinic.name} (${x.days}d)`).join(', ')}
+                  style={{ cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#b45309', background: '#fff', border: '1px solid #f0b060', borderRadius: 20, padding: '4px 10px' }}
+                >
+                  {m.flag} {m.label}: {m.ending.length}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {totalDupes > 0 && (
           <div

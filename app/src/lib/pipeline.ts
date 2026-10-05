@@ -124,8 +124,34 @@ export interface RiskFlag {
   tone: 'warn' | 'danger'
 }
 
+/** Contracts are flagged this many days before they end. */
+export const CONTRACT_ALERT_DAYS = 60
+
+/** Days until the contract ends, for clinics with a live contract; null otherwise. */
+export function contractDaysLeft(c: Clinic): number | null {
+  if (c.cs !== 'signed' && c.cs !== 'commission') return null
+  if (c.sub_status === 'inactive') return null
+  return daysUntil(c.sub_to)
+}
+
+/** Clinics whose contract ends within CONTRACT_ALERT_DAYS (or already ended), soonest first. */
+export function contractsEndingSoon(clinics: Clinic[]): { clinic: Clinic; days: number }[] {
+  return clinics
+    .map((clinic) => ({ clinic, days: contractDaysLeft(clinic) }))
+    .filter((x): x is { clinic: Clinic; days: number } => x.days !== null && x.days <= CONTRACT_ALERT_DAYS)
+    .sort((a, b) => a.days - b.days)
+}
+
 export function riskFlags(c: Clinic): RiskFlag[] {
   const flags: RiskFlag[] = []
+  const cd = contractDaysLeft(c)
+  if (cd !== null && cd <= CONTRACT_ALERT_DAYS) {
+    flags.push(
+      cd < 0
+        ? { label: `Contract ended ${Math.abs(cd)}d ago`, tone: 'danger' }
+        : { label: `Contract ends in ${cd}d`, tone: cd <= 14 ? 'danger' : 'warn' },
+    )
+  }
   const d = daysUntil(c.trial_to)
   if (d !== null) {
     if (d < 0) flags.push({ label: `Trial expired ${Math.abs(d)}d ago`, tone: 'danger' })
