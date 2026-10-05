@@ -3,18 +3,23 @@
 
 export interface Swatch { color: string; bg: string }
 
-const CAT_MAP: Record<string, [string, string]> = {
-  General: ['#15803d', '#e7f5ec'],
-  Pediatrics: ['#0d9488', '#e2f4f2'],
-  Dental: ['#4f46e5', '#ebeafd'],
-  Dermatology: ['#db2777', '#fbe7f1'],
-  Cardiology: ['#dc2626', '#fdeaea'],
-  Gynecology: ['#9333ea', '#f2e8fc'],
-  Ophthalmology: ['#0891b2', '#e2f3f8'],
-  Polyclinic: ['#2563eb', '#e7f0fe'],
-}
+// Specialties get a stable colour from a small palette, keyed by name.
+const CAT_PALETTE: [string, string][] = [
+  ['#15803d', '#e7f5ec'],
+  ['#0d9488', '#e2f4f2'],
+  ['#4f46e5', '#ebeafd'],
+  ['#db2777', '#fbe7f1'],
+  ['#dc2626', '#fdeaea'],
+  ['#9333ea', '#f2e8fc'],
+  ['#0891b2', '#e2f3f8'],
+  ['#2563eb', '#e7f0fe'],
+  ['#b45309', '#fbf1e0'],
+]
 export const catStyle = (c: string): Swatch => {
-  const v = CAT_MAP[c] || ['#475569', '#eef1f4']
+  if (!c) return { color: '#475569', bg: '#eef1f4' }
+  let h = 0
+  for (let i = 0; i < c.length; i++) h = (h * 31 + c.charCodeAt(i)) >>> 0
+  const v = CAT_PALETTE[h % CAT_PALETTE.length]
   return { color: v[0], bg: v[1] }
 }
 

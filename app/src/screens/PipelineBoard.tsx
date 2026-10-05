@@ -13,7 +13,7 @@ import {
 } from '@dnd-kit/core'
 import type { Profile } from '../lib/types'
 import type { Clinic } from '../lib/types'
-import { CLINIC_CATEGORIES } from '../lib/constants'
+import { SPECIALTIES } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { useClinics, useLastCommentDates, moveClinicStage, bulkAssign, bulkMoveStage } from '../lib/clinics'
 import {
@@ -70,6 +70,12 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
   const columns = useMemo(() => buildColumns(clinics, boardType, filters, lastComments), [clinics, boardType, filters, lastComments])
   const flatRows = useMemo(() => filterAndSort(clinics, boardType, filters, lastComments), [clinics, boardType, filters, lastComments])
 
+  // list + any legacy values still on existing clinics, so every clinic stays filterable
+  const specialtyOptions = useMemo(
+    () => [...new Set([...SPECIALTIES, ...clinics.map((c) => c.cat).filter(Boolean)])].sort((a, b) => a.localeCompare(b)),
+    [clinics],
+  )
+
   const endingSoon = useMemo(() => contractsEndingSoon(clinics), [clinics])
 
   const reps = useMemo(() => {
@@ -118,7 +124,7 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
         activeTab={activeTab}
         onTab={(k) => setView(k as 'board' | 'table' | 'calendar' | 'analytics')}
         showFilters={activeTab === 'board' || activeTab === 'table'}
-        categories={CLINIC_CATEGORIES}
+        categories={specialtyOptions}
         reps={reps}
         right={
           <>
@@ -129,7 +135,7 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                   stampedName(`${boardType}-pipeline-${market}`),
                   [
                     ['Clinic', (c) => c.name],
-                    ['Category', (c) => c.cat],
+                    ['Specialty', (c) => c.cat],
                     ['Priority', (c) => c.pri],
                     ['Stage', (c) => stageTitle(boardType, boardType === 'closer' ? c.cs : c.ts ?? 'handoff')],
                     ['Closer', (c) => c.closer],

@@ -67,19 +67,8 @@ export const TRAINER_STAGES = [
 ] as const
 export type TrainerStage = (typeof TRAINER_STAGES)[number]['key']
 
-export const CLINIC_CATEGORIES = [
-  'General',
-  'Pediatrics',
-  'Dental',
-  'Dermatology',
-  'Cardiology',
-  'Gynecology',
-  'Ophthalmology',
-  'Polyclinic',
-]
-
-// Specialties (English), from Specialty.xlsx — chosen per lead in Add / Edit lead.
-export const MEDICAL_CATEGORIES = [
+// Specialties (English), from Specialty.xlsx. One per lead — stored in clinics.cat.
+export const SPECIALTIES = [
   'Aesthetic Medicine',
   'Allergy & Immunology',
   'Andrology & Infertility',

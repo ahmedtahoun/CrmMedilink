@@ -173,7 +173,7 @@ export default function TopBar({
             className="ml-select"
             style={{ width: isMobile ? '100%' : 'auto', borderRadius: 11, fontWeight: 600 }}
           >
-            <option value="all">All categories</option>
+            <option value="all">All specialties</option>
             {categories.map((c) => (
               <option key={c} value={c}>
                 {c}

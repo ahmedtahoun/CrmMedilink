@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
 import {
   BUSINESS_TYPES,
-  CLINIC_CATEGORIES,
   CURRENT_SYSTEMS,
   HEALTHCARE_TYPES,
-  MEDICAL_CATEGORIES,
+  SPECIALTIES,
   PRIORITIES,
   SEGMENTS,
   marketCountry,
@@ -14,7 +13,7 @@ import { useEmployees } from '../lib/employees'
 import { createClinic, updateClinic } from '../lib/clinics'
 import type { Clinic, Profile } from '../lib/types'
 import Modal from '../components/Modal'
-import SpecialtyPicker from '../components/SpecialtyPicker'
+import SearchSelect from '../components/SearchSelect'
 
 interface Props {
   onClose: () => void
@@ -36,7 +35,7 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
 
   const [f, setF] = useState({
     name: editing?.name ?? '',
-    cat: editing?.cat ?? 'General',
+    cat: editing?.cat ?? 'General Practice',
     pri: editing?.pri ?? 'Medium',
     area: editing?.area ?? '',
     street: editing?.street ?? '',
@@ -55,7 +54,6 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
     current_system: editing?.current_system ?? '',
     closer: editing?.closer ?? '',
     trainer: editing?.trainer ?? '',
-    medical_cats: editing?.medical_cats ?? ([] as string[]),
   })
   const set = (k: keyof typeof f, v: string | string[]) => setF((p) => ({ ...p, [k]: v }))
 
@@ -93,7 +91,6 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
       current_system: f.current_system || null,
       closer: f.closer || null,
       trainer: f.trainer || null,
-      medical_cats: f.medical_cats,
     }
 
     if (editing) {
@@ -128,12 +125,8 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
           <input className="ml-input" value={f.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Cairo Family Clinic" />
         </div>
         <div>
-          <label className="ml-label">Category</label>
-          <select className="ml-select" value={f.cat} onChange={(e) => set('cat', e.target.value)}>
-            {CLINIC_CATEGORIES.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+          <label className="ml-label">Specialty</label>
+          <SearchSelect options={SPECIALTIES} value={f.cat} onChange={(v) => set('cat', v)} placeholder="Search specialty…" />
         </div>
         <div>
           <label className="ml-label">Priority</label>
@@ -142,10 +135,6 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
               <option key={p}>{p}</option>
             ))}
           </select>
-        </div>
-        <div style={{ gridColumn: '1/-1' }}>
-          <label className="ml-label">Specialty</label>
-          <SpecialtyPicker options={MEDICAL_CATEGORIES} value={f.medical_cats} onChange={(v) => set('medical_cats', v)} />
         </div>
         <div>
           <label className="ml-label">Area</label>

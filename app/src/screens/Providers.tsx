@@ -127,7 +127,7 @@ export default function Providers({ profile }: Props) {
                   [
                     ['Name', (c) => c.name],
                     ['Type', (c) => c.healthcare_type ?? 'Clinic'],
-                    ['Category', (c) => c.cat],
+                    ['Specialty', (c) => c.cat],
                     ['Priority', (c) => c.pri],
                     ['Area', (c) => c.area],
                     ['Contact', (c) => c.contact],
