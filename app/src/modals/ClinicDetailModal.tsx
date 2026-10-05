@@ -346,7 +346,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                   <div style={{ ...labelSm, marginBottom: 12 }}>Contract</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 22px', marginBottom: 16 }}>
                     {clinic.cs === 'commission' && (
-                      <div>
+                      <div style={{ gridColumn: '1 / -1', maxWidth: 'calc(50% - 11px)', minWidth: 0 }}>
                         <label style={{ ...labelSm, display: 'block', marginBottom: 5 }}>Commission %</label>
                         <input
                           className="ml-input"
@@ -710,9 +710,9 @@ function Field({ label, value }: { label: string; value: string | null }) {
 
 function DateField({ label, value, onChange }: { label: string; value: string | null; onChange: (v: string) => void }) {
   return (
-    <div>
+    <div style={{ minWidth: 0 }}>
       <label style={{ ...labelSm, display: 'block', marginBottom: 5 }}>{label}</label>
-      <input className="ml-input" type="date" value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+      <input className="ml-input" type="date" value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ width: '100%', minWidth: 0 }} />
     </div>
   )
 }
