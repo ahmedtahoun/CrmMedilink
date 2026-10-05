@@ -200,15 +200,22 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                   title={col.title}
                   count={col.clinics.length}
                 >
-                  {col.clinics.map((c) => (
-                    <ClinicCard
-                      key={c.id}
-                      clinic={c}
-                      board={boardType}
-                      lastCommentAt={lastComments.get(c.id) ?? null}
-                      onClick={() => setDetailId(c.id)}
-                    />
-                  ))}
+                  {(() => {
+                    const card = (c: Clinic) => (
+                      <ClinicCard
+                        key={c.id}
+                        clinic={c}
+                        board={boardType}
+                        lastCommentAt={lastComments.get(c.id) ?? null}
+                        onClick={() => setDetailId(c.id)}
+                      />
+                    )
+                    return boardType === 'closer' && col.key === 'visit' ? (
+                      <MonthGroups clinics={col.clinics} renderCard={card} />
+                    ) : (
+                      col.clinics.map(card)
+                    )
+                  })()}
                   {col.clinics.length === 0 && (
                     <div
                       style={{
@@ -274,6 +281,61 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
           }}
         />
       )}
+    </>
+  )
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+// Visits column: cards grouped under a bar per month (the month the clinic
+// entered Visits — cs_date, falling back to when it was created). The newest
+// month starts open; click a bar to expand / collapse it.
+function MonthGroups({ clinics, renderCard }: { clinics: Clinic[]; renderCard: (c: Clinic) => React.ReactNode }) {
+  const [toggled, setToggled] = useState<Record<string, boolean>>({})
+
+  const groups = useMemo(() => {
+    const byMonth = new Map<string, Clinic[]>()
+    for (const c of clinics) {
+      const key = (c.cs_date ?? c.created_at ?? '').slice(0, 7) || 'unknown'
+      byMonth.set(key, [...(byMonth.get(key) ?? []), c])
+    }
+    return [...byMonth.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+  }, [clinics])
+
+  return (
+    <>
+      {groups.map(([key, rows], i) => {
+        const open = toggled[key] ?? i === 0
+        const [y, m] = key.split('-').map(Number)
+        const label = key === 'unknown' ? 'No date' : `${MONTH_NAMES[m - 1]} ${y}`
+        return (
+          <div key={key} style={{ marginBottom: 10 }}>
+            <div
+              onClick={() => setToggled((t) => ({ ...t, [key]: !open }))}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+                padding: '8px 11px',
+                marginBottom: open ? 10 : 0,
+                borderRadius: 10,
+                background: '#fff',
+                border: '1px solid #d9e0e4',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 12.5, color: 'var(--ink-2)' }}>
+                <span style={{ display: 'inline-block', width: 10, fontSize: 10, color: '#7a8891', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .12s' }}>▶</span>
+                {label}
+              </span>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: '#5b6a73', background: '#eef1f3', borderRadius: 7, padding: '2px 8px' }}>{rows.length}</span>
+            </div>
+            {open && rows.map(renderCard)}
+          </div>
+        )
+      })}
     </>
   )
 }
