@@ -8,6 +8,7 @@ import { useClinics } from '../lib/clinics'
 import { eventTypeStyle, eventPriorityStyle } from '../lib/styles'
 import { localDateStr } from '../lib/format'
 import Icon from '../components/Icon'
+import ClinicPicker from '../components/ClinicPicker'
 
 const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -456,14 +457,7 @@ function EventModal({
           </div>
           <div>
             <label className="ml-label">Link to clinic (optional)</label>
-            <select className="ml-select" value={draft.clinic_id} onChange={(e) => up({ clinic_id: e.target.value })}>
-              <option value="">No link</option>
-              {clinics.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <ClinicPicker clinics={clinics} value={draft.clinic_id} onChange={(id) => up({ clinic_id: id })} />
           </div>
           <div>
             <label className="ml-label">Notes / outcome</label>

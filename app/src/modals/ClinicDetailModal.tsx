@@ -15,7 +15,7 @@ import {
   toggleTask,
 } from '../lib/clinics'
 import { catStyle, commentTypeStyle, priStyle, stageColorFor } from '../lib/styles'
-import { contactLabel, shortDay, shortDateTime } from '../lib/format'
+import { contactLabel, shortDay, shortDateTime, todayStr } from '../lib/format'
 import { riskFlags, stageTitle, type BoardType } from '../lib/pipeline'
 import {
   useClinicAttachments,
@@ -55,7 +55,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
   const showToast = useAppStore((s) => s.showToast)
   const { clinics } = useClinics(market)
   const clinic = clinics.find((c) => c.id === clinicId)
-  const { comments, sessions, tasks, reload } = useClinicDetail(clinicId)
+  const { comments, sessions, tasks, events, reload } = useClinicDetail(clinicId)
 
   const [tab, setTab] = useState<Tab>('overview')
   const [commentDraft, setCommentDraft] = useState('')
@@ -533,7 +533,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
 
           {tab === 'training' && (
             <div>
-              {sessions.length === 0 && <div className="ml-empty" style={{ padding: '18px 0' }}>No training sessions yet.</div>}
+              {sessions.length === 0 && events.length === 0 && <div className="ml-empty" style={{ padding: '18px 0' }}>No training sessions yet.</div>}
               {sessions.map((s) => (
                 <div key={s.id} style={{ border: '1px solid var(--border-2)', borderRadius: 11, padding: '12px 14px', marginBottom: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -558,6 +558,25 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                   {s.notes && <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 6 }}>{s.notes}</div>}
                 </div>
               ))}
+              {events.length > 0 && (
+                <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: 12, paddingTop: 14 }}>
+                  <div style={{ ...labelSm, marginBottom: 10 }}>Calendar appointments</div>
+                  {events.map((ev) => (
+                    <div key={ev.id} style={{ border: '1px solid var(--border-2)', borderRadius: 11, padding: '11px 14px', marginBottom: 8, opacity: ev.done ? 0.7 : 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                        <strong style={{ fontSize: 13.5, color: 'var(--ink-2)', textDecoration: ev.done ? 'line-through' : 'none' }}>{ev.title}</strong>
+                        <Pill swatch={ev.done ? { color: '#15803d', bg: '#e7f5ec' } : ev.date < todayStr() ? { color: '#b45309', bg: '#fbf1e0' } : { color: '#2563eb', bg: '#eff6ff' }}>
+                          {ev.done ? 'Done' : ev.date < todayStr() ? 'Past' : 'Upcoming'}
+                        </Pill>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+                        {shortDay(ev.date)} {ev.time ?? ''} · {ev.type}
+                      </div>
+                      {ev.notes && <div style={{ fontSize: 12.5, color: 'var(--text-2)', marginTop: 6 }}>{ev.notes}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
               <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: 12, paddingTop: 14 }}>
                 <div style={{ ...labelSm, marginBottom: 10 }}>Schedule a session</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import type {
+  CalendarEvent,
   Clinic,
   ClinicComment,
   ClinicTask,
@@ -223,6 +224,7 @@ export function useClinicDetail(clinicId: string | null) {
   const [comments, setComments] = useState<ClinicComment[]>([])
   const [sessions, setSessions] = useState<TrainingSession[]>([])
   const [tasks, setTasks] = useState<ClinicTask[]>([])
+  const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(false)
   const [tick, setTick] = useState(0)
   const reload = useCallback(() => setTick((t) => t + 1), [])
@@ -235,12 +237,14 @@ export function useClinicDetail(clinicId: string | null) {
       supabase.from('clinic_comments').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: false }),
       supabase.from('training_sessions').select('*').eq('clinic_id', clinicId).order('date', { ascending: true }),
       supabase.from('clinic_tasks').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: true }),
-    ]).then(([c, s, t]) => {
+      supabase.from('calendar_events').select('*').eq('clinic_id', clinicId).order('date', { ascending: true }),
+    ]).then(([c, s, t, ev]) => {
       if (cancelled) return
       clearTimeout(t0)
       setComments((c.data as ClinicComment[]) ?? [])
       setSessions((s.data as TrainingSession[]) ?? [])
       setTasks((t.data as ClinicTask[]) ?? [])
+      setEvents((ev.data as CalendarEvent[]) ?? [])
       setLoading(false)
     })
     return () => {
@@ -249,7 +253,7 @@ export function useClinicDetail(clinicId: string | null) {
     }
   }, [clinicId, tick])
 
-  return { comments, sessions, tasks, loading, reload }
+  return { comments, sessions, tasks, events, loading, reload }
 }
 
 export async function addComment(
