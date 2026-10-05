@@ -40,6 +40,7 @@ export default function Providers({ profile }: Props) {
   const [typeF, setTypeF] = useState('all')
   const [statusF, setStatusF] = useState('all')
   const [stageF, setStageF] = useState('all')
+  const [sortF, setSortF] = useState('recent')
   const [priF, setPriF] = useState('all')
   const [dupesOnly, setDupesOnly] = useState(false)
   const [page, setPage] = useState(1)
@@ -76,12 +77,16 @@ export default function Providers({ profile }: Props) {
       }
       return true
     })
+    const priRank: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
+    if (sortF === 'recent') list.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+    else if (sortF === 'name') list.sort((a, b) => a.name.localeCompare(b.name))
+    else if (sortF === 'priority') list.sort((a, b) => (priRank[a.pri] ?? 3) - (priRank[b.pri] ?? 3))
     // group same-phone leads next to each other so duplicates are easy to compare
     if (dupesFilterActive) {
       list.sort((a, b) => normalizePhone(a.phone).localeCompare(normalizePhone(b.phone)) || a.name.localeCompare(b.name))
     }
     return list
-  }, [clinics, q, typeF, statusF, stageF, priF, dupesFilterActive, phoneDupes])
+  }, [clinics, q, typeF, statusF, stageF, priF, sortF, dupesFilterActive, phoneDupes])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const curPage = Math.min(page, pageCount)
@@ -185,6 +190,11 @@ export default function Providers({ profile }: Props) {
                 {p}
               </option>
             ))}
+          </select>
+          <select className="ml-select" value={sortF} onChange={(e) => setSortF(e.target.value)} style={{ flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 'auto', borderRadius: 11, fontWeight: 600 }}>
+            <option value="recent">Sort: Recently added</option>
+            <option value="name">Sort: Name</option>
+            <option value="priority">Sort: Priority</option>
           </select>
           {phoneDupes.size > 0 && (
             <button

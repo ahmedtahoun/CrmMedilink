@@ -315,6 +315,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                 )}
                 <Field label="Email" value={clinic.email} />
                 <Field label="Area" value={clinic.area} />
+                <Field label="Specialty" value={clinic.medical_cats?.length ? clinic.medical_cats.join(', ') : null} />
                 <div>
                   <div style={labelSm}>Closer / Trainer</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>

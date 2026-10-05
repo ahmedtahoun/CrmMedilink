@@ -14,6 +14,7 @@ import { useEmployees } from '../lib/employees'
 import { createClinic, updateClinic } from '../lib/clinics'
 import type { Clinic, Profile } from '../lib/types'
 import Modal from '../components/Modal'
+import SpecialtyPicker from '../components/SpecialtyPicker'
 
 interface Props {
   onClose: () => void
@@ -30,7 +31,7 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
   const { employees } = useEmployees()
   const [saving, setSaving] = useState(false)
   const [showMore, setShowMore] = useState(
-    () => !!editing && !!(editing.healthcare_type || editing.business_type || editing.segment || editing.current_system || editing.medical_cats?.length),
+    () => !!editing && !!(editing.healthcare_type || editing.business_type || editing.segment || editing.current_system),
   )
 
   const [f, setF] = useState({
@@ -119,9 +120,6 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
     onClose()
   }
 
-  const toggleMedCat = (c: string) =>
-    set('medical_cats', f.medical_cats.includes(c) ? f.medical_cats.filter((x) => x !== c) : [...f.medical_cats, c])
-
   return (
     <Modal title={editing ? 'Edit lead' : asProvider ? 'Add provider' : 'Add clinic'} onClose={onClose}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -144,6 +142,10 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
               <option key={p}>{p}</option>
             ))}
           </select>
+        </div>
+        <div style={{ gridColumn: '1/-1' }}>
+          <label className="ml-label">Specialty</label>
+          <SpecialtyPicker options={MEDICAL_CATEGORIES} value={f.medical_cats} onChange={(v) => set('medical_cats', v)} />
         </div>
         <div>
           <label className="ml-label">Area</label>
@@ -237,28 +239,6 @@ export default function AddClinicModal({ onClose, asProvider, editing, profile }
                 <option key={s}>{s}</option>
               ))}
             </select>
-          </div>
-          <div style={{ gridColumn: '1/-1' }}>
-            <label className="ml-label">Medical categories</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {MEDICAL_CATEGORIES.map((c) => (
-                <div
-                  key={c}
-                  onClick={() => toggleMedCat(c)}
-                  style={{
-                    padding: '5px 10px',
-                    borderRadius: 8,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    background: f.medical_cats.includes(c) ? '#e3f4ee' : '#f1f4f6',
-                    color: f.medical_cats.includes(c) ? '#0e6b52' : 'var(--muted-2)',
-                  }}
-                >
-                  {c}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )}
