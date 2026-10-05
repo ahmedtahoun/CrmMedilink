@@ -21,7 +21,7 @@ import {
   activityAt,
   filterAndSort,
   riskFlags,
-  boardStageDefs,
+  moveStageDefs,
   stageTitle,
   trialDaysLeft,
   type BoardType,
@@ -582,7 +582,7 @@ function TableView({
             style={{ padding: '8px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 600, background: '#16242d', color: '#fff', border: '1px solid #33424c' }}
           >
             <option value="">Move to stage…</option>
-            {boardStageDefs(board).map((s) => (
+            {moveStageDefs(board).map((s) => (
               <option key={s.key} value={s.key}>
                 {s.title}
               </option>

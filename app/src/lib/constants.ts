@@ -48,9 +48,13 @@ export const CLOSER_STAGES = [
 ] as const
 export type CloserStage = (typeof CLOSER_STAGES)[number]['key']
 
-// Sales pipeline board columns — everything except Leads. New leads are
-// worked from the Leads screen; the board tracks clinics once contacted.
-export const CLOSER_BOARD_STAGES = CLOSER_STAGES.filter((s) => s.key !== 'lead')
+// Sales pipeline board columns. Leads are worked from the Leads screen; signed
+// clinics move on to the Trainer board; Not Interested is set from the Leads
+// screen / bulk move. None of those three get a column here.
+const HIDDEN_BOARD_STAGES: string[] = ['lead', 'signed', 'not_interested']
+export const CLOSER_BOARD_STAGES = CLOSER_STAGES.filter((s) => !HIDDEN_BOARD_STAGES.includes(s.key))
+// Stages a clinic can be moved to from the board's bulk action (all but Leads).
+export const CLOSER_MOVE_STAGES = CLOSER_STAGES.filter((s) => s.key !== 'lead')
 
 // --- Training pipeline (trainer board) ---
 export const TRAINER_STAGES = [

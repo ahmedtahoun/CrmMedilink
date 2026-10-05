@@ -1,4 +1,4 @@
-import { CLOSER_BOARD_STAGES, CLOSER_STAGES, TRAINER_STAGES } from './constants'
+import { CLOSER_BOARD_STAGES, CLOSER_MOVE_STAGES, CLOSER_STAGES, TRAINER_STAGES } from './constants'
 import type { Clinic } from './types'
 import { daysUntil, normalizePhone } from './format'
 
@@ -16,6 +16,11 @@ export function stageDefs(board: BoardType) {
 /** Stages that actually appear as pipeline board columns. */
 export function boardStageDefs(board: BoardType) {
   return board === 'closer' ? CLOSER_BOARD_STAGES : TRAINER_STAGES
+}
+
+/** Stages offered by the bulk "Move to stage" action. */
+export function moveStageDefs(board: BoardType) {
+  return board === 'closer' ? CLOSER_MOVE_STAGES : TRAINER_STAGES
 }
 
 export function stageTitle(board: BoardType, key: string): string {
