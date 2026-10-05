@@ -353,33 +353,20 @@ export default function Providers({ profile }: Props) {
         )}
 
         {filtered.length > PAGE_SIZE && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 4px 0', flexShrink: 0 }}>
-            <span style={{ fontSize: 12.5, color: 'var(--muted-4)', fontWeight: 600 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', padding: '16px 4px 0', flexShrink: 0 }}>
+            <span style={{ fontSize: 12.5, color: 'var(--muted-4)', fontWeight: 600, whiteSpace: 'nowrap' }}>
               Showing {(curPage - 1) * PAGE_SIZE + 1}–{Math.min(curPage * PAGE_SIZE, filtered.length)} of {filtered.length}
             </span>
-            <div style={{ display: 'flex', gap: 5 }}>
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-                <div
-                  key={n}
-                  onClick={() => setPage(n)}
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    background: n === curPage ? 'var(--brand)' : '#fff',
-                    color: n === curPage ? '#fff' : 'var(--text)',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  {n}
-                </div>
-              ))}
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', alignItems: 'center' }}>
+              <PageBtn label="‹" disabled={curPage === 1} onClick={() => setPage(curPage - 1)} />
+              {pageWindow(curPage, pageCount).map((n, i) =>
+                n === null ? (
+                  <span key={`gap${i}`} style={{ width: 20, textAlign: 'center', color: 'var(--muted-4)', fontWeight: 700 }}>…</span>
+                ) : (
+                  <PageBtn key={n} label={String(n)} active={n === curPage} onClick={() => setPage(n)} />
+                ),
+              )}
+              <PageBtn label="›" disabled={curPage === pageCount} onClick={() => setPage(curPage + 1)} />
             </div>
           </div>
         )}
@@ -471,6 +458,46 @@ function ProviderCard({
           ⚠ Duplicate phone
         </div>
       )}
+    </div>
+  )
+}
+
+// 1 … 4 5 [6] 7 8 … 42 — first, last, and a window around the current page.
+function pageWindow(cur: number, total: number): (number | null)[] {
+  const keep = new Set([1, total, cur - 1, cur, cur + 1])
+  if (cur <= 3) [2, 3, 4].forEach((n) => keep.add(n))
+  if (cur >= total - 2) [total - 3, total - 2, total - 1].forEach((n) => keep.add(n))
+  const nums = [...keep].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b)
+  const out: (number | null)[] = []
+  nums.forEach((n, i) => {
+    if (i > 0 && n - nums[i - 1] > 1) out.push(null)
+    out.push(n)
+  })
+  return out
+}
+
+function PageBtn({ label, active, disabled, onClick }: { label: string; active?: boolean; disabled?: boolean; onClick: () => void }) {
+  return (
+    <div
+      onClick={disabled ? undefined : onClick}
+      style={{
+        minWidth: 30,
+        height: 30,
+        padding: '0 6px',
+        borderRadius: 8,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 12.5,
+        fontWeight: 700,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.4 : 1,
+        background: active ? 'var(--brand)' : '#fff',
+        color: active ? '#fff' : 'var(--text)',
+        border: '1px solid var(--border)',
+      }}
+    >
+      {label}
     </div>
   )
 }
