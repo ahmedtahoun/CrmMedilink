@@ -83,6 +83,7 @@ export const HOLIDAY_SWATCH: Swatch = { color: '#b45309', bg: '#fbf1e0' }
 
 export const stageColorFor = (cs: string, ts: string | null): Swatch => {
   if (cs === 'not_interested') return { color: '#dc2626', bg: '#fdecec' }
+  if (cs === 'follow_up_later') return { color: '#7c3aed', bg: '#f2e8fc' }
   if (cs === 'on_hold') return { color: '#b45309', bg: '#fbf1e0' }
   if (cs !== 'signed' && cs !== 'commission') return { color: '#2563eb', bg: '#eff6ff' }
   if (!ts || ts === 'handoff' || ts === 'scheduled') return { color: '#7c3aed', bg: '#f2e8fc' }

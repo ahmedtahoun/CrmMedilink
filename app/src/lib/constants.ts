@@ -45,6 +45,7 @@ export const CLOSER_STAGES = [
   { key: 'commission', title: 'Commission Based' },
   { key: 'signed', title: 'Contract Subscription' },
   { key: 'not_interested', title: 'Not Interested' },
+  { key: 'follow_up_later', title: 'Follow up later' },
   { key: 'on_hold', title: 'On Hold / Cancel' },
 ] as const
 export type CloserStage = (typeof CLOSER_STAGES)[number]['key']

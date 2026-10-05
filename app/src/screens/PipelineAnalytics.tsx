@@ -33,10 +33,11 @@ export default function PipelineAnalytics({ clinics }: Props) {
     })
     const bestPriority = [...priorityWinRate].sort((x, y) => y.rate - x.rate)[0]
 
-    // funnel (cumulative reach of each stage) — "Not Interested" and "On Hold /
-    // Cancel" are side buckets, not forward steps, so they don't get a funnel bar.
+    // funnel (cumulative reach of each stage) — Not Interested, Follow up later
+    // and On Hold / Cancel are side buckets, not forward steps, so they don't
+    // get a funnel bar.
     const idxOf = (c: Clinic) => STAGE_ORDER.indexOf(c.cs)
-    const funnel = CLOSER_STAGES.filter((s) => s.key !== 'not_interested' && s.key !== 'on_hold').map((s, i) => ({
+    const funnel = CLOSER_STAGES.filter((s) => !STAGE_ORDER.includes(s.key)).map((s, i) => ({
       label: s.title,
       count: clinics.filter((c) => idxOf(c) >= i).length,
     }))
