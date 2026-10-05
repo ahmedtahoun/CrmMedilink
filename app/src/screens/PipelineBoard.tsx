@@ -345,7 +345,7 @@ function ClinicCard({
   const tdl = trialDaysLeft(clinic)
   const isLive = (clinic.cs === 'signed' || clinic.cs === 'commission') && clinic.ts === 'live'
   const isTrainer = board === 'trainer'
-  const trainerStageKeys = ['handoff', 'scheduled', 'reception', 'followup', 'live']
+  const trainerStageKeys = ['handoff', 'scheduled', 'reception', 'live']
   const progressPct = isTrainer
     ? Math.round(((trainerStageKeys.indexOf(clinic.ts ?? 'handoff') + 1) / trainerStageKeys.length) * 100)
     : 0

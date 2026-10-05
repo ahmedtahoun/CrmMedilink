@@ -59,9 +59,8 @@ export const CLOSER_MOVE_STAGES = CLOSER_STAGES.filter((s) => s.key !== 'lead')
 // --- Training pipeline (trainer board) ---
 export const TRAINER_STAGES = [
   { key: 'handoff', title: 'Contract Signed' },
-  { key: 'scheduled', title: 'Training Scheduled' },
+  { key: 'scheduled', title: 'Onboarded' },
   { key: 'reception', title: 'Reception Training' },
-  { key: 'followup', title: 'Follow-up Session' },
   { key: 'live', title: 'Live' },
 ] as const
 export type TrainerStage = (typeof TRAINER_STAGES)[number]['key']

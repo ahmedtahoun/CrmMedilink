@@ -45,10 +45,9 @@ const CLOSER_NEXT: Record<string, { label: string; next: string }> = {
   commission: { label: 'Mark Contract Signed', next: 'signed' },
 }
 const TRAINER_NEXT: Record<string, { label: string; next: string }> = {
-  handoff: { label: 'Schedule Training', next: 'scheduled' },
+  handoff: { label: 'Mark Onboarded', next: 'scheduled' },
   scheduled: { label: 'Start Reception Training', next: 'reception' },
-  reception: { label: 'Start Follow-up', next: 'followup' },
-  followup: { label: 'Mark Live', next: 'live' },
+  reception: { label: 'Mark Live', next: 'live' },
 }
 
 export default function ClinicDetailModal({ clinicId, profile, board, onClose }: Props) {
