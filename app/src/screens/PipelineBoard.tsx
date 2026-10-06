@@ -217,7 +217,7 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                       />
                     )
                     return boardType === 'closer' && col.key === 'visit' ? (
-                      <MonthGroups clinics={col.clinics} renderCard={card} />
+                      <MonthGroups clinics={col.clinics} lastComments={lastComments} renderCard={card} />
                     ) : (
                       col.clinics.map(card)
                     )
@@ -293,20 +293,21 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-// Visits column: cards grouped under a bar per month (the month the clinic
-// entered Visits — cs_date, falling back to when it was created). The newest
-// month starts open; click a bar to expand / collapse it.
-function MonthGroups({ clinics, renderCard }: { clinics: Clinic[]; renderCard: (c: Clinic) => React.ReactNode }) {
+// Visits column: cards grouped under a bar per month — the clinic's active
+// month, i.e. its last comment (or creation date if it has none), the same date
+// as the card's "Active" badge. The newest month starts open; click a bar to
+// expand / collapse it.
+function MonthGroups({ clinics, lastComments, renderCard }: { clinics: Clinic[]; lastComments: Map<string, string>; renderCard: (c: Clinic) => React.ReactNode }) {
   const [toggled, setToggled] = useState<Record<string, boolean>>({})
 
   const groups = useMemo(() => {
     const byMonth = new Map<string, Clinic[]>()
     for (const c of clinics) {
-      const key = (c.cs_date ?? c.created_at ?? '').slice(0, 7) || 'unknown'
+      const key = activityAt(c, lastComments.get(c.id)).slice(0, 7) || 'unknown'
       byMonth.set(key, [...(byMonth.get(key) ?? []), c])
     }
     return [...byMonth.entries()].sort((a, b) => b[0].localeCompare(a[0]))
-  }, [clinics])
+  }, [clinics, lastComments])
 
   return (
     <>
