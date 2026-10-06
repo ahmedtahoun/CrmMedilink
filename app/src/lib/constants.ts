@@ -64,6 +64,7 @@ export const TRAINER_STAGES = [
   { key: 'scheduled', title: 'Onboarded' },
   { key: 'reception', title: 'Reception Training' },
   { key: 'live', title: 'Live' },
+  { key: 'on_hold', title: 'On Hold / Cancel' },
 ] as const
 export type TrainerStage = (typeof TRAINER_STAGES)[number]['key']
 

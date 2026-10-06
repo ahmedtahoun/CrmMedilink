@@ -87,7 +87,9 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
   const next = (board === 'closer' ? CLOSER_NEXT : TRAINER_NEXT)[stKey]
   const journeyStages = board === 'closer' ? CLOSER_STAGES : TRAINER_STAGES
   const journeyIdx = journeyStages.findIndex((s) => s.key === stKey)
-  const journeyPct = Math.round(((journeyIdx + 1) / journeyStages.length) * 100)
+  // side buckets (not forward steps) show an empty progress bar
+  const isSideStage = ['not_interested', 'follow_up_later', 'on_hold'].includes(stKey)
+  const journeyPct = isSideStage ? 0 : Math.round(((journeyIdx + 1) / journeyStages.length) * 100)
   const stColor = stageColorFor(clinic.cs, clinic.ts)
   const reachedMou = clinic.cs === 'signed' || clinic.cs === 'commission'
 
