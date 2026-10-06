@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Clinic } from '../lib/types'
+import { matchesSearch } from '../lib/search'
 
 interface Props {
   clinics: Clinic[]
@@ -18,8 +19,8 @@ export default function ClinicPicker({ clinics, value, onChange, placeholder = '
     [clinics],
   )
   const matches = useMemo(() => {
-    const needle = q.trim().toLowerCase()
-    return needle ? sorted.filter((c) => c.name.toLowerCase().includes(needle)) : sorted
+    const needle = q.trim()
+    return needle ? sorted.filter((c) => matchesSearch({ text: c.name, phones: [c.phone] }, needle)) : sorted
   }, [sorted, q])
 
   const selected = clinics.find((c) => c.id === value)

@@ -1,6 +1,7 @@
 import { CLOSER_BOARD_STAGES, CLOSER_MOVE_STAGES, CLOSER_STAGES, TRAINER_STAGES } from './constants'
 import type { Clinic } from './types'
 import { daysUntil, normalizePhone } from './format'
+import { matchesSearch } from './search'
 
 export type BoardType = 'closer' | 'trainer'
 
@@ -73,10 +74,7 @@ export function filterAndSort(
       const rep = board === 'closer' ? c.closer : c.trainer
       if (rep !== f.repFilter) return false
     }
-    if (q) {
-      const hay = `${c.name} ${c.contact ?? ''} ${c.area ?? ''}`.toLowerCase()
-      if (!hay.includes(q)) return false
-    }
+    if (q && !matchesSearch({ text: `${c.name} ${c.contact ?? ''} ${c.contact2 ?? ''} ${c.area ?? ''}`, phones: [c.phone, c.contact2_phone] }, q)) return false
     return true
   })
 

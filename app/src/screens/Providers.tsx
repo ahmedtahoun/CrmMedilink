@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Clinic, Profile } from '../lib/types'
+import { searchScore } from '../lib/search'
 import { CLOSER_STAGES, HEALTHCARE_TYPES, MARKETS, PRIORITIES } from '../lib/constants'
 import { useAppStore } from '../store/appStore'
 import { useIsMobile } from '../lib/useIsMobile'
@@ -61,8 +62,8 @@ export default function Providers({ profile }: Props) {
   const dupesFilterActive = dupesOnly && phoneDupes.size > 0
 
   const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase()
-    const needleDigits = needle.replace(/\D/g, '')
+    const needle = q.trim()
+    const scores = new Map<string, number>()
     const list = clinics.filter((c) => {
       if (typeF !== 'all' && (c.healthcare_type ?? 'Clinic') !== typeF) return false
       if (statusF !== 'all' && c.sub_status !== statusF) return false
@@ -70,15 +71,18 @@ export default function Providers({ profile }: Props) {
       if (priF !== 'all' && c.pri !== priF) return false
       if (dupesFilterActive && !(c.phone && phoneDupes.has(normalizePhone(c.phone)))) return false
       if (needle) {
-        const hay = `${c.name} ${c.area ?? ''} ${c.contact ?? ''} ${c.phone ?? ''}`.toLowerCase()
-        const phoneDigits = (c.phone ?? '').replace(/\D/g, '')
-        const matchesPhone = needleDigits.length >= 3 && phoneDigits.includes(needleDigits)
-        if (!hay.includes(needle) && !matchesPhone) return false
+        const score = searchScore(
+          { text: `${c.name} ${c.area ?? ''} ${c.contact ?? ''} ${c.contact2 ?? ''}`, phones: [c.phone, c.contact2_phone] },
+          needle,
+        )
+        if (score === 0) return false
+        scores.set(c.id, score)
       }
       return true
     })
     const priRank: Record<string, number> = { High: 0, Medium: 1, Low: 2 }
-    if (sortF === 'recent') list.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+    if (needle && sortF === 'recent') list.sort((a, b) => (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0) || (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+    else if (sortF === 'recent') list.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
     else if (sortF === 'name') list.sort((a, b) => a.name.localeCompare(b.name))
     else if (sortF === 'priority') list.sort((a, b) => (priRank[a.pri] ?? 3) - (priRank[b.pri] ?? 3))
     // group same-phone leads next to each other so duplicates are easy to compare
