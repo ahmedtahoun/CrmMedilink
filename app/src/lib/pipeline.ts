@@ -7,6 +7,9 @@ export type BoardType = 'closer' | 'trainer'
 // A clinic is "closed won" — and so belongs on the trainer board — once Sales
 // moves it to Commission Based OR Contract Subscription.
 export const isTrainingEligible = (c: Clinic): boolean => c.cs === 'commission' || c.cs === 'signed'
+/** Clinics with a contract in place (Commission Based or Contract Subscription). */
+export const isSigned = isTrainingEligible
+export const isLiveClinic = (c: Clinic): boolean => isSigned(c) && c.ts === 'live'
 
 /** Full stage list, for titles/lookups — includes Leads even though it's not a board column. */
 export function stageDefs(board: BoardType) {

@@ -3,7 +3,7 @@ import type { Clinic } from '../lib/types'
 import { CLOSER_STAGES } from '../lib/constants'
 import { repColor, initials } from '../lib/styles'
 import { fmtMoney } from '../lib/format'
-import type { BoardType } from '../lib/pipeline'
+import { isSigned, isLiveClinic, type BoardType } from '../lib/pipeline'
 
 interface Props {
   clinics: Clinic[]
@@ -15,7 +15,7 @@ const STAGE_ORDER = ['lead', 'visit', 'followup', 'proposal', 'commission', 'sig
 export default function PipelineAnalytics({ clinics }: Props) {
   const a = useMemo(() => {
     const total = clinics.length || 1
-    const signed = clinics.filter((c) => c.cs === 'signed').length
+    const signed = clinics.filter(isSigned).length
     const convRate = Math.round((signed / total) * 100)
 
     // category mix
@@ -28,7 +28,7 @@ export default function PipelineAnalytics({ clinics }: Props) {
     // win rate by priority
     const priorityWinRate = (['High', 'Medium', 'Low'] as const).map((p) => {
       const rows = clinics.filter((c) => c.pri === p)
-      const won = rows.filter((c) => c.cs === 'signed').length
+      const won = rows.filter(isSigned).length
       return { label: p, total: rows.length, signed: won, rate: rows.length ? Math.round((won / rows.length) * 100) : 0 }
     })
     const bestPriority = [...priorityWinRate].sort((x, y) => y.rate - x.rate)[0]
@@ -48,8 +48,8 @@ export default function PipelineAnalytics({ clinics }: Props) {
     for (const c of clinics) {
       if (!c.closer) continue
       const e = repMap.get(c.closer) ?? { signed: 0, live: 0, mrr: 0 }
-      if (c.cs === 'signed') e.signed += 1
-      if (c.cs === 'signed' && c.ts === 'live') e.live += 1
+      if (isSigned(c)) e.signed += 1
+      if (isLiveClinic(c)) e.live += 1
       e.mrr += Number(c.mrr || 0)
       repMap.set(c.closer, e)
     }

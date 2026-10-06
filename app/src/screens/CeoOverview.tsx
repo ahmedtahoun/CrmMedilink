@@ -5,7 +5,7 @@ import { useAppStore } from '../store/appStore'
 import { useClinics } from '../lib/clinics'
 import { useFxRates, setFxRate } from '../lib/fx'
 import { fmtMoney } from '../lib/format'
-import { findPhoneDuplicates, contractsEndingSoon, CONTRACT_ALERT_DAYS } from '../lib/pipeline'
+import { findPhoneDuplicates, contractsEndingSoon, isSigned, isLiveClinic, CONTRACT_ALERT_DAYS } from '../lib/pipeline'
 import { repColor, initials } from '../lib/styles'
 import TopBar from '../components/TopBar'
 
@@ -38,8 +38,8 @@ export default function CeoOverview({ profile }: Props) {
 
   const marketStats = MARKETS.map((m) => {
     const rows = byMarket[m.key] ?? []
-    const signed = rows.filter((c) => c.cs === 'signed').length
-    const liveCount = rows.filter((c) => c.cs === 'signed' && c.ts === 'live').length
+    const signed = rows.filter(isSigned).length
+    const liveCount = rows.filter(isLiveClinic).length
     const mrrLocal = rows.filter((c) => c.sub_status !== 'inactive').reduce((a, c) => a + Number(c.mrr || 0), 0)
     const mrrUsd = mrrLocal * (rates[m.key] ?? 0)
     return { ...m, count: rows.length, signed, liveCount, mrrLocal, mrrUsd }
@@ -68,8 +68,8 @@ export default function CeoOverview({ profile }: Props) {
       const rep = c.closer
       if (!rep) continue
       const e = map.get(rep) ?? { signed: 0, live: 0, mrr: 0 }
-      if (c.cs === 'signed') e.signed += 1
-      if (c.cs === 'signed' && c.ts === 'live') e.live += 1
+      if (isSigned(c)) e.signed += 1
+      if (isLiveClinic(c)) e.live += 1
       e.mrr += Number(c.mrr || 0)
       map.set(rep, e)
     }
