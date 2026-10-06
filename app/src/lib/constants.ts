@@ -70,6 +70,9 @@ export type TrainerStage = (typeof TRAINER_STAGES)[number]['key']
 
 // Specialties (English), from Specialty.xlsx. One per lead — stored in clinics.cat.
 export const SPECIALTIES = [
+  // most common first, then A–Z
+  'General Practice',
+  'General Surgery',
   'Aesthetic Medicine',
   'Allergy & Immunology',
   'Andrology & Infertility',
@@ -82,8 +85,6 @@ export const SPECIALTIES = [
   'Diabetes & Endocrinology',
   'Family Medicine',
   'Gastroenterology & Endoscopy',
-  'General Practice',
-  'General Surgery',
   'Geriatric Medicine',
   'Hematology',
   'Hepatology',
