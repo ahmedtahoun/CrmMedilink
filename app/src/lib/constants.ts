@@ -121,7 +121,7 @@ export const SPECIALTIES = [
   'Weight Management & Nutrition',
 ]
 
-export const HEALTHCARE_TYPES = ['Clinic', 'Hospital', 'Medical Center']
+export const HEALTHCARE_TYPES = ['Clinic', 'Polyclinic', 'Hospital', 'Medical Center']
 export const BUSINESS_TYPES = ['Private', 'Government', 'University', 'NGO']
 export const SEGMENTS = ['Solo Practice', 'Small Clinic', 'Medium Clinic', 'Large Clinic', 'Hospital', 'Enterprise']
 export const CURRENT_SYSTEMS = ['Paper', 'Excel', 'Vezeeta', 'Clinido', 'Custom System', 'Other']
