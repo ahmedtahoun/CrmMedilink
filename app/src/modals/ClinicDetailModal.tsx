@@ -367,6 +367,13 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                     <DateField label="End Date" value={clinic.sub_to} onChange={(v) => patch({ sub_to: v })} />
                   </div>
 
+                  <ContractFolder
+                    key={clinic.id}
+                    folder={clinic.contract_folder}
+                    url={clinic.contract_folder_url}
+                    onSave={(p) => patch(p, 'Contract folder saved')}
+                  />
+
                   {clinic.sub_status !== 'inactive' ? (
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                       <Pill swatch={{ color: '#0e9b76', bg: '#e3f4ee' }}>● Active</Pill>
@@ -735,6 +742,66 @@ function DateField({ label, value, onChange }: { label: string; value: string | 
     <div style={{ minWidth: 0 }}>
       <label style={{ ...labelSm, display: 'block', marginBottom: 5 }}>{label}</label>
       <input className="ml-input" type="date" value={value ?? ''} onChange={(e) => onChange(e.target.value)} style={{ width: '100%', minWidth: 0 }} />
+    </div>
+  )
+}
+
+// Where this clinic's contract lives (Drive / OneDrive / local). The folder name
+// is searchable across the CRM; the link opens it in one click. Saved on blur.
+function ContractFolder({
+  folder,
+  url,
+  onSave,
+}: {
+  folder: string | null
+  url: string | null
+  onSave: (p: Partial<Clinic>) => void
+}) {
+  const [name, setName] = useState(folder ?? '')
+  const [link, setLink] = useState(url ?? '')
+  const safeLink = /^https?:\/\//i.test(link.trim()) ? link.trim() : null
+
+  function commit() {
+    const nextName = name.trim() || null
+    const nextLink = link.trim() || null
+    if (nextName === (folder ?? null) && nextLink === (url ?? null)) return
+    onSave({ contract_folder: nextName, contract_folder_url: nextLink })
+  }
+
+  return (
+    <div style={{ borderTop: '1px solid var(--border-2)', paddingTop: 14, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 22px', marginBottom: 10 }}>
+        <div style={{ minWidth: 0 }}>
+          <label style={{ ...labelSm, display: 'block', marginBottom: 5 }}>Contract folder name</label>
+          <input
+            className="ml-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={commit}
+            placeholder="As named on your drive"
+          />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <label style={{ ...labelSm, display: 'block', marginBottom: 5 }}>Folder link (Drive / OneDrive)</label>
+          <input
+            className="ml-input"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            onBlur={commit}
+            placeholder="https://…"
+          />
+        </div>
+      </div>
+      {safeLink && (
+        <a
+          href={safeLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 12.5, fontWeight: 700, color: '#0e9b76', textDecoration: 'none' }}
+        >
+          Open contract folder ↗
+        </a>
+      )}
     </div>
   )
 }

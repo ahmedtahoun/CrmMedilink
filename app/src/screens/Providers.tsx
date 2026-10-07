@@ -72,7 +72,7 @@ export default function Providers({ profile }: Props) {
       if (dupesFilterActive && !(c.phone && phoneDupes.has(normalizePhone(c.phone)))) return false
       if (needle) {
         const score = searchScore(
-          { text: `${c.name} ${c.area ?? ''} ${c.contact ?? ''} ${c.contact2 ?? ''}`, phones: [c.phone, c.contact2_phone] },
+          { text: `${c.name} ${c.area ?? ''} ${c.contact ?? ''} ${c.contact2 ?? ''} ${c.contract_folder ?? ''}`, phones: [c.phone, c.contact2_phone] },
           needle,
         )
         if (score === 0) return false
@@ -144,6 +144,8 @@ export default function Providers({ profile }: Props) {
                     ['Closer', (c) => c.closer],
                     ['Trainer', (c) => c.trainer],
                     ['Subscription', (c) => c.sub_status],
+                    ['Contract folder', (c) => c.contract_folder],
+                    ['Contract folder link', (c) => c.contract_folder_url],
                     ['MRR', (c) => c.mrr],
                     ['Trial ends', (c) => c.trial_to],
                     ['Created', (c) => c.created_at?.slice(0, 10)],

@@ -74,7 +74,7 @@ export function filterAndSort(
       const rep = board === 'closer' ? c.closer : c.trainer
       if (rep !== f.repFilter) return false
     }
-    if (q && !matchesSearch({ text: `${c.name} ${c.contact ?? ''} ${c.contact2 ?? ''} ${c.area ?? ''}`, phones: [c.phone, c.contact2_phone] }, q)) return false
+    if (q && !matchesSearch({ text: `${c.name} ${c.contact ?? ''} ${c.contact2 ?? ''} ${c.area ?? ''} ${c.contract_folder ?? ''}`, phones: [c.phone, c.contact2_phone] }, q)) return false
     return true
   })
 

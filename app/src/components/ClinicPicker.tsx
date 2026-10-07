@@ -20,7 +20,7 @@ export default function ClinicPicker({ clinics, value, onChange, placeholder = '
   )
   const matches = useMemo(() => {
     const needle = q.trim()
-    return needle ? sorted.filter((c) => matchesSearch({ text: c.name, phones: [c.phone] }, needle)) : sorted
+    return needle ? sorted.filter((c) => matchesSearch({ text: `${c.name} ${c.contract_folder ?? ''}`, phones: [c.phone] }, needle)) : sorted
   }, [sorted, q])
 
   const selected = clinics.find((c) => c.id === value)

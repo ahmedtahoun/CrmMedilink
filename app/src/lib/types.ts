@@ -59,6 +59,8 @@ export interface Clinic {
   sub_status: 'active' | 'trial' | 'expired' | 'inactive'
   sub_reason: string | null
   commission_pct: number | null
+  contract_folder: string | null
+  contract_folder_url: string | null
   board_order: number
   is_provider: boolean
   created_by: string | null

@@ -148,6 +148,8 @@ export default function PipelineBoard({ profile, boardType, onAddClinic }: Props
                     ['Second contact phone', (c) => c.contact2_phone],
                     ['MRR', (c) => c.mrr],
                     ['Subscription', (c) => c.sub_status],
+                    ['Contract folder', (c) => c.contract_folder],
+                    ['Contract folder link', (c) => c.contract_folder_url],
                     ['Contract start', (c) => c.sub_from],
                     ['Contract end', (c) => c.sub_to],
                   ],
