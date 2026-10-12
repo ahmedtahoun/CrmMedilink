@@ -749,7 +749,7 @@ function DateField({ label, value, onChange }: { label: string; value: string | 
 }
 
 // Where this clinic's contract lives (Drive / OneDrive / local). The folder name
-// is searchable across the CRM; the link opens it in one click. Saved on blur.
+// is searchable across the CRM; the link opens it in one click. Explicit Save.
 function ContractFolder({
   folder,
   url,
@@ -757,17 +757,22 @@ function ContractFolder({
 }: {
   folder: string | null
   url: string | null
-  onSave: (p: Partial<Clinic>) => void
+  onSave: (p: Partial<Clinic>) => Promise<void>
 }) {
   const [name, setName] = useState(folder ?? '')
   const [link, setLink] = useState(url ?? '')
-  const safeLink = safeUrl(link)
+  const [saving, setSaving] = useState(false)
+  const nextName = name.trim() || null
+  const nextLink = link.trim() || null
+  const dirty = nextName !== (folder ?? null) || nextLink !== (url ?? null)
+  const badLink = !!nextLink && !safeUrl(nextLink)
+  const hasSaved = !!(folder || url)
 
-  function commit() {
-    const nextName = name.trim() || null
-    const nextLink = link.trim() || null
-    if (nextName === (folder ?? null) && nextLink === (url ?? null)) return
-    onSave({ contract_folder: nextName, contract_folder_url: nextLink })
+  async function save() {
+    if (badLink || !dirty) return
+    setSaving(true)
+    await onSave({ contract_folder: nextName, contract_folder_url: nextLink })
+    setSaving(false)
   }
 
   return (
@@ -779,7 +784,7 @@ function ContractFolder({
             className="ml-input"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onBlur={commit}
+            onKeyDown={(e) => e.key === 'Enter' && save()}
             placeholder="As named on your drive"
           />
         </div>
@@ -789,12 +794,26 @@ function ContractFolder({
             className="ml-input"
             value={link}
             onChange={(e) => setLink(e.target.value)}
-            onBlur={commit}
+            onKeyDown={(e) => e.key === 'Enter' && save()}
             placeholder="https://…"
           />
         </div>
       </div>
-      <FolderLink url={safeLink} name={name} label="Open contract folder" />
+      {badLink && (
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: '#dc2626', marginBottom: 8 }}>
+          The link must start with http:// or https://
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <FolderLink url={url} name={folder} label="Open contract folder" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }}>
+          {!dirty && hasSaved && <span style={{ fontSize: 12, fontWeight: 700, color: '#0e9b76' }}>✓ Saved</span>}
+          {dirty && !badLink && <span style={{ fontSize: 12, fontWeight: 600, color: '#b45309' }}>Unsaved changes</span>}
+          <button className="ml-btn" onClick={save} disabled={!dirty || badLink || saving} style={{ fontSize: 12.5, padding: '8px 16px' }}>
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
