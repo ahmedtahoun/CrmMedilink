@@ -7,6 +7,12 @@ export const contactLabel = (contact: string | null, position: string | null): s
   return position ? `${contact} / ${position}` : contact
 }
 
+// Only http(s) links are ever opened from a clinic's saved folder link.
+export const safeUrl = (url: string | null | undefined): string | null => {
+  const u = (url ?? '').trim()
+  return /^https?:\/\//i.test(u) ? u : null
+}
+
 export const num = (v: unknown): number => {
   const n = Number(v)
   return Number.isFinite(n) ? n : 0

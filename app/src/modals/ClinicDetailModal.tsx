@@ -15,7 +15,7 @@ import {
   toggleTask,
 } from '../lib/clinics'
 import { catStyle, commentTypeStyle, priStyle, stageColorFor } from '../lib/styles'
-import { contactLabel, shortDay, shortDateTime, todayStr } from '../lib/format'
+import { contactLabel, safeUrl, shortDay, shortDateTime, todayStr } from '../lib/format'
 import { riskFlags, stageTitle, type BoardType } from '../lib/pipeline'
 import {
   useClinicAttachments,
@@ -25,6 +25,7 @@ import {
 } from '../lib/attachments'
 import Avatar from '../components/Avatar'
 import Pill from '../components/Pill'
+import FolderLink from '../components/FolderLink'
 import AddClinicModal from './AddClinicModal'
 
 interface Props {
@@ -216,6 +217,7 @@ export default function ClinicDetailModal({ clinicId, profile, board, onClose }:
                   <option value="Medium">Medium priority</option>
                   <option value="Low">Low priority</option>
                 </select>
+                <FolderLink url={clinic.contract_folder_url} name={clinic.contract_folder} label="Open folder" />
               </div>
             </div>
             <div
@@ -759,7 +761,7 @@ function ContractFolder({
 }) {
   const [name, setName] = useState(folder ?? '')
   const [link, setLink] = useState(url ?? '')
-  const safeLink = /^https?:\/\//i.test(link.trim()) ? link.trim() : null
+  const safeLink = safeUrl(link)
 
   function commit() {
     const nextName = name.trim() || null
@@ -792,16 +794,7 @@ function ContractFolder({
           />
         </div>
       </div>
-      {safeLink && (
-        <a
-          href={safeLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 12.5, fontWeight: 700, color: '#0e9b76', textDecoration: 'none' }}
-        >
-          Open contract folder ↗
-        </a>
-      )}
+      <FolderLink url={safeLink} name={name} label="Open contract folder" />
     </div>
   )
 }

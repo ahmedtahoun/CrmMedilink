@@ -33,6 +33,7 @@ import { shortDay } from '../lib/format'
 import TopBar from '../components/TopBar'
 import Pill from '../components/Pill'
 import Avatar from '../components/Avatar'
+import FolderLink from '../components/FolderLink'
 import Icon from '../components/Icon'
 import ExportButton from '../components/ExportButton'
 import { exportObjects, stampedName } from '../lib/csv'
@@ -478,26 +479,29 @@ function ClinicCard({
         >
           {clinic.name}
         </span>
-        {isLive && (
-          <span
-            style={{
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              fontSize: 10,
-              fontWeight: 800,
-              color: '#0e7d43',
-              background: '#dcf5e6',
-              border: '1px solid #a6e6c3',
-              padding: '3px 8px',
-              borderRadius: 20,
-            }}
-          >
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1fae5c', animation: 'pulseDot 1.8s infinite' }} />
-            LIVE
-          </span>
-        )}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <FolderLink url={clinic.contract_folder_url} name={clinic.contract_folder} />
+          {isLive && (
+            <span
+              style={{
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 10,
+                fontWeight: 800,
+                color: '#0e7d43',
+                background: '#dcf5e6',
+                border: '1px solid #a6e6c3',
+                padding: '3px 8px',
+                borderRadius: 20,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1fae5c', animation: 'pulseDot 1.8s infinite' }} />
+              LIVE
+            </span>
+          )}
+        </span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 9 }}>
